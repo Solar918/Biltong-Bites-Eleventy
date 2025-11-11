@@ -50,8 +50,6 @@
   const modalTitle = $('#modal-title');
   const modalDesc = $('#modal-desc');
   const modalImg = $('#modal-image');
-  const modalFlavour = $('#modal-flavour');
-  const modalQuantity = $('#modal-quantity');
   const modalLive = $('#modal-live');
   const modalCode = $('#modal-code');
   let lastFocused = null;
@@ -66,27 +64,17 @@
     if (img) {
       modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
     } else { modalImg.hidden = true; }
-    modalFlavour.textContent = '';
-    modalQuantity.textContent = '';
-    (card.dataset.flavour || '').split(' ').filter(Boolean).forEach((f) => {
-      const li = document.createElement('li');
-      li.textContent = f;
-      modalFlavour.appendChild(li);
-    });
-    (card.dataset.quantity || '').split(' ').filter(Boolean).forEach((q) => {
-      const li = document.createElement('li');
-      li.textContent = q;
-      modalQuantity.appendChild(li);
-    });
     const live = $('a.btn', card); const code = $('a.btn.btn-ghost', card);
     if (live) { modalLive.href = live.href; modalLive.hidden = false; } else modalLive.hidden = true;
     if (code) { modalCode.href = code.href; modalCode.hidden = false; } else modalCode.hidden = true;
     modal.showModal();
+    document.body.classList.add('modal-open');
     modal.addEventListener('keydown', onModalKeydown);
   }
   function closeModal() {
     if (!modal) return;
     modal.close();
+    document.body.classList.remove('modal-open');
     modal.removeEventListener('keydown', onModalKeydown);
     lastFocused?.focus();
   }
