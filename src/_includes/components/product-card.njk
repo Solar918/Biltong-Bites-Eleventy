@@ -9,6 +9,11 @@
   <div class="card-body">
     <h3 class="card-title">{{ product.data.title }}</h3>
     <p class="card-desc">{{ product.data.description }}</p>
+    {% if product.data.flavour %}
+      <ul class="flavour-list">
+        {% for f in product.data.flavour %}<li>{{ f }}</li>{% endfor %}
+      </ul>
+    {% endif %}
     <div class="card-actions">
       <button class="btn btn-ghost more" data-modal-open data-slug="{{ product.fileSlug }}" aria-haspopup="dialog">Details</button>
     </div>
