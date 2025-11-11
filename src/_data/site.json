@@ -1,11 +1,11 @@
 {
-  "name": "Ethan Armstrong",
-  "title": "Front-End-Developer",
-  "description": "Welcome to my Tech Portfolio! Here you will find a showcase of my projects, experiments, and accomplishments in technology and software development. From coding challenges and personal builds to collaborative work, this portfolio highlights my skills, growth, and passion for creating innovative solutions. Explore my journey as I continue to learn and build exciting tech projects.",
-  "url": "https://ethansportfolio.koines.org",
+  "name": "Biltong Bites",
+  "title": "Biltong Bites co",
+  "description": "Welcome to Biltong Bites, your go-to destination for delicious and authentic biltong snacks. Our passion for quality and flavor drives us to create the best biltong products that satisfy your cravings. Explore our range of mouth-watering biltong bites, perfect for on-the-go snacking or sharing with friends and family. Experience the taste of tradition with a modern twist at Biltong Bites!",
+  "url": "https://biltongbites.koines.org",
   "author": {
-    "name": "Ethan Armstrong",
-    "email": "ethanarmstrong111@gmail.com",
-    "github": "https://github.com/Solar918"
+    "name": "Biltong Bites",
+    "email": "biltongbites25@gmail.com",
+    "github": "https://github.com/Solar918/Biltong-Bites-Eleventy"
   }
 }
