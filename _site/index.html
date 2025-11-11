@@ -3,14 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Ethan Armstrong · Front-End-Developer</title>
-    <meta name="description" content="Welcome to my Tech Portfolio! Here you will find a showcase of my projects, experiments, and accomplishments in technology and software development. From coding challenges and personal builds to collaborative work, this portfolio highlights my skills, growth, and passion for creating innovative solutions. Explore my journey as I continue to learn and build exciting tech projects." />
+    <title>Biltong Bites · Biltong Bites co</title>
+    <meta name="description" content="At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste." />
 
-    <meta property="og:title" content="Ethan Armstrong" />
-    <meta property="og:description" content="Welcome to my Tech Portfolio! Here you will find a showcase of my projects, experiments, and accomplishments in technology and software development. From coding challenges and personal builds to collaborative work, this portfolio highlights my skills, growth, and passion for creating innovative solutions. Explore my journey as I continue to learn and build exciting tech projects." />
+    <meta property="og:title" content="Biltong Bites" />
+    <meta property="og:description" content="At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://ethansportfolio.koines.org/" />
-    <meta property="og:image" content="https://ethansportfolio.koines.org/assets/images/placeholder.png" />
+    <meta property="og:url" content="https://biltongbites.koines.org/" />
+    <meta property="og:image" content="https://biltongbites.koines.org/assets/images/placeholder.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="@" />
@@ -34,10 +34,10 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
   <nav class="container nav">
-    <a class="brand" href="/" aria-label="Ethan Armstrong home">Ethan Armstrong</a>
+    <a class="brand" href="/" aria-label="Biltong Bites home">Biltong Bites</a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="site-menu">Menu</button>
     <ul id="site-menu" class="menu">
-      <li><a href="#projects">Projects</a></li>
+      <li><a href="#products">Products</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="#contact">Contact</a></li>
       <li><button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
@@ -55,34 +55,30 @@
       
 <section class="hero container" aria-labelledby="intro-heading">
   <div class="hero-content">
-    <h1 id="intro-heading">Hi, I’m Ethan Armstrong.</h1>
-    <p class="lead">Welcome to my Tech Portfolio! Here you will find a showcase of my projects, experiments, and accomplishments in technology and software development. From coding challenges and personal builds to collaborative work, this portfolio highlights my skills, growth, and passion for creating innovative solutions. Explore my journey as I continue to learn and build exciting tech projects.</p>
+    <h1 id="intro-heading">Hi, we're Biltong Bites.</h1>
+    <p class="lead">At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste.</p>
     <div class="cta">
-      <a href="#projects" class="btn">See my work</a>
+      <a href="#products" class="btn">See our products</a>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
   </div>
 </section>
 
-<section id="projects" class="container section" aria-labelledby="projects-heading">
+<section id="products" class="container section" aria-labelledby="products-heading">
   <header class="section-header">
-    <h2 id="projects-heading">Projects</h2>
+    <h2 id="products-heading">Products</h2>
     <div class="controls">
       <label class="search">
-        <span class="visually-hidden">Search projects</span>
-        <input id="project-search" type="search" placeholder="Search projects…" autocomplete="off" />
+        <span class="visually-hidden">Search products</span>
+        <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
       <details class="filters">
-        <summary>Filter by tech</summary>
-        <div class="filter-group" id="tech-filters">
-          
-            <label><input type="checkbox" value="css" /> <span>CSS</span></label>
+        <summary>Filter by flavour</summary>
+        <div class="filter-group" id="flavour-filters">
           
             <label><input type="checkbox" value="d3.js" /> <span>D3.js</span></label>
           
             <label><input type="checkbox" value="eleventy" /> <span>Eleventy</span></label>
-          
-            <label><input type="checkbox" value="javascript" /> <span>JavaScript</span></label>
           
             <label><input type="checkbox" value="netlify" /> <span>Netlify</span></label>
           
@@ -92,86 +88,16 @@
           
             <label><input type="checkbox" value="web components" /> <span>Web Components</span></label>
           
+            <label><input type="checkbox" value="original" /> <span>original</span></label>
+          
         </div>
       </details>
     </div>
   </header>
 
-  <div class="grid projects" id="project-grid">
+  <div class="grid products" id="product-grid">
     
-      <article class="card project" tabindex="0" data-title="hello world app" data-desc="a minimal app demonstrating fast loads and clean ui." data-tech="eleventy javascript css">
-  <div class="card-media">
-    
-      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Hello World App screenshot" />
-    
-  </div>
-  <div class="card-body">
-    <h3 class="card-title">Hello World App</h3>
-    <p class="card-desc">A minimal app demonstrating fast loads and clean UI.</p>
-    
-      <ul class="tech-list">
-        <li>Eleventy</li><li>JavaScript</li><li>CSS</li>
-      </ul>
-    
-    <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
-      <a class="btn btn-ghost" href="https://github.com/example/hello" target="_blank" rel="noopener">Code</a>
-      <button class="btn btn-ghost more" data-modal-open data-slug="project-hello" aria-haspopup="dialog">Details</button>
-    </div>
-  </div>
-</article>
-
-
-    
-      <article class="card project" tabindex="0" data-title="design system studio" data-desc="token-driven design system with themeable components." data-tech="typescript sass web components">
-  <div class="card-media">
-    
-      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Design System Studio screenshot" />
-    
-  </div>
-  <div class="card-body">
-    <h3 class="card-title">Design System Studio</h3>
-    <p class="card-desc">Token-driven design system with themeable components.</p>
-    
-      <ul class="tech-list">
-        <li>TypeScript</li><li>Sass</li><li>Web Components</li>
-      </ul>
-    
-    <div class="card-actions">
-      <a class="btn" href="https://example.com/studio" target="_blank" rel="noopener">Live</a>
-      <a class="btn btn-ghost" href="https://github.com/example/studio" target="_blank" rel="noopener">Code</a>
-      <button class="btn btn-ghost more" data-modal-open data-slug="project-studio" aria-haspopup="dialog">Details</button>
-    </div>
-  </div>
-</article>
-
-
-    
-      <article class="card project" tabindex="0" data-title="design system studio" data-desc="token-driven design system with themeable components." data-tech="typescript sass web components">
-  <div class="card-media">
-    
-      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Design System Studio screenshot" />
-    
-  </div>
-  <div class="card-body">
-    <h3 class="card-title">Design System Studio</h3>
-    <p class="card-desc">Token-driven design system with themeable components.</p>
-    
-      <ul class="tech-list">
-        <li>TypeScript</li><li>Sass</li><li>Web Components</li>
-      </ul>
-    
-    <div class="card-actions">
-      <a class="btn" href="https://example.com/studio" target="_blank" rel="noopener">Live</a>
-      <a class="btn btn-ghost" href="https://github.com/example/studio" target="_blank" rel="noopener">Code</a>
-      <button class="btn btn-ghost more" data-modal-open data-slug="project-trial" aria-haspopup="dialog">Details</button>
-    </div>
-  </div>
-</article>
-
-
-    
-      <article class="card project" tabindex="0" data-title="ml insights dashboard" data-desc="interactive dashboard with client-side filtering and charts." data-tech="d3.js eleventy netlify">
+      <article class="card product" tabindex="0" data-title="ml insights dashboard" data-desc="interactive dashboard with client-side filtering and charts." data-flavour="d3.js eleventy netlify">
   <div class="card-media">
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="ML Insights Dashboard screenshot" />
@@ -181,23 +107,87 @@
     <h3 class="card-title">ML Insights Dashboard</h3>
     <p class="card-desc">Interactive dashboard with client-side filtering and charts.</p>
     
-      <ul class="tech-list">
+      <ul class="flavour-list">
         <li>D3.js</li><li>Eleventy</li><li>Netlify</li>
       </ul>
     
     <div class="card-actions">
       <a class="btn" href="https://example.com/ml-insights" target="_blank" rel="noopener">Live</a>
-      <a class="btn btn-ghost" href="https://github.com/example/ml-insights" target="_blank" rel="noopener">Code</a>
-      <button class="btn btn-ghost more" data-modal-open data-slug="project-ml" aria-haspopup="dialog">Details</button>
+      <button class="btn btn-ghost more" data-modal-open data-slug="product-ml" aria-haspopup="dialog">Details</button>
     </div>
   </div>
 </article>
 
+    
+      <article class="card product" tabindex="0" data-title="design system studio" data-desc="token-driven design system with themeable components." data-flavour="typescript sass web components">
+  <div class="card-media">
+    
+      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Design System Studio screenshot" />
+    
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">Design System Studio</h3>
+    <p class="card-desc">Token-driven design system with themeable components.</p>
+    
+      <ul class="flavour-list">
+        <li>TypeScript</li><li>Sass</li><li>Web Components</li>
+      </ul>
+    
+    <div class="card-actions">
+      <a class="btn" href="https://example.com/studio" target="_blank" rel="noopener">Live</a>
+      <button class="btn btn-ghost more" data-modal-open data-slug="product-studio" aria-haspopup="dialog">Details</button>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="card product" tabindex="0" data-title="design system studio" data-desc="token-driven design system with themeable components." data-flavour="typescript sass web components">
+  <div class="card-media">
+    
+      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Design System Studio screenshot" />
+    
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">Design System Studio</h3>
+    <p class="card-desc">Token-driven design system with themeable components.</p>
+    
+      <ul class="flavour-list">
+        <li>TypeScript</li><li>Sass</li><li>Web Components</li>
+      </ul>
+    
+    <div class="card-actions">
+      <a class="btn" href="https://example.com/studio" target="_blank" rel="noopener">Live</a>
+      <button class="btn btn-ghost more" data-modal-open data-slug="product-trial" aria-haspopup="dialog">Details</button>
+    </div>
+  </div>
+</article>
+
+    
+      <article class="card product" tabindex="0" data-title="original biltong - 50g" data-desc="a hearty portion for the avid snacker, with authentic savanna taste." data-flavour="original">
+  <div class="card-media">
+    
+      <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 50g screenshot" />
+    
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">Original Biltong - 50g</h3>
+    <p class="card-desc">A hearty portion for the avid snacker, with authentic savanna taste.</p>
+    
+      <ul class="flavour-list">
+        <li>original</li>
+      </ul>
+    
+    <div class="card-actions">
+      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
+      <button class="btn btn-ghost more" data-modal-open data-slug="product-50og" aria-haspopup="dialog">Details</button>
+    </div>
+  </div>
+</article>
 
     
   </div>
 
-  <dialog id="project-modal" aria-labelledby="modal-title">
+  <dialog id="product-modal" aria-labelledby="modal-title">
     <article class="modal-card">
       <header class="modal-header">
         <h3 id="modal-title">Title</h3>
@@ -206,7 +196,7 @@
       <div class="modal-body">
         <img id="modal-image" alt="" hidden />
         <p id="modal-desc"></p>
-        <ul id="modal-tech" class="tech-list"></ul>
+        <ul id="modal-flavour" class="flavour-list"></ul>
       </div>
       <footer class="modal-footer">
         <a id="modal-live" class="btn" href="#" target="_blank" rel="noopener" hidden>Live</a>
@@ -219,24 +209,14 @@
 <section id="about" class="container section" aria-labelledby="about-heading">
   <h2 id="about-heading">About</h2>
   <p>
-    I’m a front-end-developer, focused on building interactive, performant, and accessible interfaces.
-    I enjoy working with modern web standards, progressive enhancement, and clean design systems.
+    We’re a team of four passionate 15 and 16-year-olds running Biltong Bites as part of the Young Enterprise Scheme. We handcraft our biltong using carefully selected, low-stress meat to make each bite more tender and less acidic than store-bought options. Driven by quality, teamwork, and a love for good food, we're proud to bring you a snack that's high in protein, full of flavour, and made right here by young Kiwi entrepreneurs.
   </p>
-  <ul class="skills">
-    <li>JavaScript</li>
-    <li>TypeScript</li>
-    <li>Node.js</li>
-    <li>CSS/Sass</li>
-    <li>Eleventy</li>
-    <li>React</li>
-  </ul>
-  <a class="btn" href="#contact">Work with me</a>
-  
+
 </section>
 
 <section id="contact" class="container section" aria-labelledby="contact-heading">
   <h2 id="contact-heading">Contact</h2>
-  <p>Prefer email? <a href="mailto:ethanarmstrong111@gmail.com">ethanarmstrong111@gmail.com</a></p>
+  <p>Prefer email? <a href="mailto:biltongbites25@gmail.com">biltongbites25@gmail.com</a></p>
   <form name="contact" method="POST" data-netlify="true" netlify-honeypot="bot-field">
     <input type="hidden" name="form-name" value="contact" />
     <p class="hidden"><label>Don’t fill this out: <input name="bot-field" /></label></p>
@@ -249,14 +229,13 @@
   </form>
 </section>
 
-
     </main>
 
     <footer class="site-footer">
   <div class="container footer-grid">
-    <p>© <span data-year></span> Ethan Armstrong · Built with Eleventy</p>
+    <p>© <span data-year></span> Biltong Bites · Built with Eleventy</p>
     <ul class="social">
-      <li><a href="https://github.com/https://github.com/Solar918" rel="me">GitHub</a></li>
+      <li><a href="https://github.com/https://github.com/Solar918/Biltong-Bites-Eleventy" rel="me">GitHub</a></li>
       <li><a href="https://twitter.com/" rel="me">Twitter</a></li>
       <li><a href="https://www.linkedin.com/in/" rel="me">LinkedIn</a></li>
     </ul>

@@ -1,17 +1,18 @@
 module.exports = function(eleventyConfig) {
   // Copy static assets (CSS, images) to output
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
-  // Collection of project markdown files for index rendering
-  eleventyConfig.addCollection("projects", function(collectionApi) {
-    return collectionApi.getFilteredByGlob("src/projects/*.md").sort((a, b) => b.date - a.date);
+
+  // Collection of product markdown files for index rendering
+  eleventyConfig.addCollection("products", function(collectionApi) {
+    return collectionApi.getFilteredByGlob("src/products/*.md");
   });
 
-  // Unique list of tech tags from all projects
-  eleventyConfig.addCollection("techTags", function(collectionApi) {
+  // Unique list of flavour tags from all products
+  eleventyConfig.addCollection("flavourTags", function(collectionApi) {
     let tagSet = new Set();
-    collectionApi.getFilteredByGlob("src/projects/*.md").forEach(item => {
-      if (Array.isArray(item.data.tech)) {
-        item.data.tech.forEach(t => tagSet.add(t));
+    collectionApi.getFilteredByGlob("src/products/*.md").forEach(item => {
+      if (Array.isArray(item.data.flavour)) {
+        item.data.flavour.forEach(f => tagSet.add(f));
       }
     });
     return Array.from(tagSet).sort();

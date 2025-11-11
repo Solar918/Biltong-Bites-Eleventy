@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://ethansportfolio.koines.org/sitemap.xml
+Sitemap: https://biltongbites.koines.org/sitemap.xml
 

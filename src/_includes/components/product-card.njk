@@ -1,0 +1,22 @@
+<article class="card product" tabindex="0" data-title="{{ product.data.title | lower }}" data-desc="{{ (product.data.description or '') | lower }}" data-flavour="{{ (product.data.flavour or []).join(' ').toLowerCase() }}">
+  <div class="card-media">
+    {% if product.data.image %}
+      <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }} screenshot" />
+    {% else %}
+      <div class="placeholder" aria-hidden="true"></div>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <h3 class="card-title">{{ product.data.title }}</h3>
+    <p class="card-desc">{{ product.data.description }}</p>
+    {% if product.data.flavour %}
+      <ul class="flavour-list">
+        {% for f in product.data.flavour %}<li>{{ f }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    <div class="card-actions">
+      {% if product.data.url %}<a class="btn" href="{{ product.data.url }}" target="_blank" rel="noopener">Live</a>{% endif %}
+      <button class="btn btn-ghost more" data-modal-open data-slug="{{ product.fileSlug }}" aria-haspopup="dialog">Details</button>
+    </div>
+  </div>
+</article>

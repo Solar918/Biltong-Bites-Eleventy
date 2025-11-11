@@ -18,41 +18,42 @@
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   // Intersection animation
-  const projects = $$('#project-grid .project');
+  const products = $$('#product-grid .product');
   const io = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => {
     for (const e of entries) if (e.isIntersecting) e.target.classList.add('in-view');
   }, { rootMargin: '0px 0px -10% 0px' }) : null;
-  projects.forEach((card) => io?.observe(card));
+  products.forEach((card) => io?.observe(card));
 
   // Search + filters
-  const searchInput = $('#project-search');
-  const filterRoot = $('#tech-filters');
+  const searchInput = $('#product-search');
+  const filterRoot = $('#flavour-filters');
   function applyFilter() {
     const q = (searchInput?.value || '').trim().toLowerCase();
-    const actives = $$('#tech-filters input:checked').map((i) => i.value);
-    projects.forEach((el) => {
-      const hay = `${el.dataset.title} ${el.dataset.desc} ${el.dataset.tech}`;
+    const actives = $$('#flavour-filters input:checked').map((i) => i.value);
+    products.forEach((el) => {
+      const hay = `${el.dataset.title} ${el.dataset.desc} ${el.dataset.flavour}`;
       const matchesQuery = !q || hay.includes(q);
-      const matchesTech = !actives.length || actives.every((t) => el.dataset.tech.includes(t));
-      el.style.display = matchesQuery && matchesTech ? '' : 'none';
+      const matchesFlavour = !actives.length || actives.every((f) => el.dataset.flavour.includes(f));
+      el.style.display = matchesQuery && matchesFlavour ? '' : 'none';
     });
   }
   searchInput?.addEventListener('input', applyFilter);
   filterRoot?.addEventListener('change', applyFilter);
 
   // Modal for project details
-  const modal = $('#project-modal');
+  // Modal for product details
+  const modal = $('#product-modal');
   const modalTitle = $('#modal-title');
   const modalDesc = $('#modal-desc');
   const modalImg = $('#modal-image');
-  const modalTech = $('#modal-tech');
+  const modalFlavour = $('#modal-flavour');
   const modalLive = $('#modal-live');
   const modalCode = $('#modal-code');
   let lastFocused = null;
 
   function openModal(slug) {
     lastFocused = document.activeElement;
-    const card = $(`.project [data-slug="${CSS.escape(slug)}"]`)?.closest('.project');
+    const card = $(`.product [data-slug="${CSS.escape(slug)}"]`)?.closest('.product');
     if (!card || !modal) return;
     modalTitle.textContent = $('.card-title', card)?.textContent || '';
     modalDesc.textContent = $('.card-desc', card)?.textContent || '';
@@ -60,9 +61,9 @@
     if (img) {
       modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
     } else { modalImg.hidden = true; }
-    modalTech.innerHTML = '';
-    (card.dataset.tech || '').split(' ').filter(Boolean).forEach((t) => {
-      const li = document.createElement('li'); li.textContent = t; modalTech.appendChild(li);
+    modalFlavour.innerHTML = '';
+    (card.dataset.flavour || '').split(' ').filter(Boolean).forEach((f) => {
+      const li = document.createElement('li'); li.textContent = f; modalFlavour.appendChild(li);
     });
     const live = $('a.btn', card); const code = $('a.btn.btn-ghost', card);
     if (live) { modalLive.href = live.href; modalLive.hidden = false; } else modalLive.hidden = true;
@@ -102,4 +103,3 @@
     const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
   }, { passive: true });
 })();
-
