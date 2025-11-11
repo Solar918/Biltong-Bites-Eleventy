@@ -127,6 +127,9 @@ label { display: grid; gap: .35rem; }
 .filter-dropdown:hover .filter-menu {
   display: block;
 }
+.filter-dropdown.open .filter-menu {
+  display: block;
+}
 
 /* Nested filter group menus */
 .filter-menu .filter-group {

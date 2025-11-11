@@ -96,6 +96,18 @@
     if (closeBtn || e.target === modal) closeModal();
   });
 
+  // Click-toggle filter dropdown menus and close on outside click
+  $$('.filter-toggle').forEach(btn => {
+    const dropdown = btn.closest('.filter-dropdown');
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+  });
+  document.addEventListener('click', () => {
+    $$('.filter-dropdown.open').forEach(dd => dd.classList.remove('open'));
+  });
+
   // Simple prefetch on hover
   const prefetch = (url) => {
     try { const link = Object.assign(document.createElement('link'), { rel: 'prefetch', href: url }); document.head.appendChild(link); } catch (e) {}
