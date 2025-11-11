@@ -5,6 +5,12 @@
     {% else %}
       <div class="placeholder" aria-hidden="true"></div>
     {% endif %}
+
+    {% if product.data.quantity %}
+      <ul class="quantity-list">
+        {% for q in product.data.quantity %}<li>{{ q }}</li>{% endfor %}
+      </ul>
+    {% endif %}
   </div>
   <div class="card-body">
     <h3 class="card-title">{{ product.data.title }}</h3>

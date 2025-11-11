@@ -72,22 +72,37 @@
         <span class="visually-hidden">Search products</span>
         <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
-      <details class="filters">
-        <summary>Filter by flavour</summary>
-        <div class="filter-group" id="flavour-filters">
-          
-            <label><input type="checkbox" value="100g" /> <span>100g</span></label>
-          
-            <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
-          
-            <label><input type="checkbox" value="250g" /> <span>250g</span></label>
-          
-            <label><input type="checkbox" value="500g" /> <span>500g</span></label>
-          
-            <label><input type="checkbox" value="original" /> <span>Original</span></label>
-          
-        </div>
-      </details>
+      <div class="filter-dropdown">
+        <button class="filter-toggle">Filters</button>
+        <ul class="filter-menu">
+          <li>
+            Flavour
+            <div class="filter-group" id="flavour-filters">
+              
+                <label><input type="checkbox" value="100g" /> <span>100g</span></label>
+              
+                <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
+              
+                <label><input type="checkbox" value="250g" /> <span>250g</span></label>
+              
+                <label><input type="checkbox" value="500g" /> <span>500g</span></label>
+              
+                <label><input type="checkbox" value="50g" /> <span>50g</span></label>
+              
+                <label><input type="checkbox" value="original" /> <span>Original</span></label>
+              
+            </div>
+          </li>
+          <li>
+            Quantity
+            <div class="filter-group" id="quantity-filters">
+              
+                <label><input type="checkbox" value="50g" /> <span>50g</span></label>
+              
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </header>
 
@@ -97,6 +112,8 @@
   <div class="card-media">
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 1kg screenshot" />
+    
+
     
   </div>
   <div class="card-body">
@@ -108,7 +125,6 @@
       </ul>
     
     <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
       <button class="btn btn-ghost more" data-modal-open data-slug="product-1000og" aria-haspopup="dialog">Details</button>
     </div>
   </div>
@@ -120,6 +136,8 @@
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 100g screenshot" />
     
+
+    
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 100g</h3>
@@ -130,7 +148,6 @@
       </ul>
     
     <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
       <button class="btn btn-ghost more" data-modal-open data-slug="product-100og" aria-haspopup="dialog">Details</button>
     </div>
   </div>
@@ -142,6 +159,8 @@
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 250g screenshot" />
     
+
+    
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 250g</h3>
@@ -152,7 +171,6 @@
       </ul>
     
     <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
       <button class="btn btn-ghost more" data-modal-open data-slug="product-250og" aria-haspopup="dialog">Details</button>
     </div>
   </div>
@@ -164,6 +182,8 @@
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 500g screenshot" />
     
+
+    
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 500g</h3>
@@ -174,17 +194,22 @@
       </ul>
     
     <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
       <button class="btn btn-ghost more" data-modal-open data-slug="product-500og" aria-haspopup="dialog">Details</button>
     </div>
   </div>
 </article>
 
     
-      <article class="card product" tabindex="0" data-title="original biltong - 50g" data-desc="a small, tasty hit of biltong—perfect for light snacking." data-flavour="original">
+      <article class="card product" tabindex="0" data-title="original biltong - 50g" data-desc="a small, tasty hit of biltong—perfect for light snacking." data-flavour="original 50g">
   <div class="card-media">
     
       <img loading="lazy" src="/assets/images/placeholder.svg" alt="Original Biltong - 50g screenshot" />
+    
+
+    
+      <ul class="quantity-list">
+        <li>50g</li>
+      </ul>
     
   </div>
   <div class="card-body">
@@ -192,11 +217,10 @@
     <p class="card-desc">A small, tasty hit of biltong—perfect for light snacking.</p>
     
       <ul class="flavour-list">
-        <li>Original</li>
+        <li>Original</li><li>50g</li>
       </ul>
     
     <div class="card-actions">
-      <a class="btn" href="https://example.com/hello" target="_blank" rel="noopener">Live</a>
       <button class="btn btn-ghost more" data-modal-open data-slug="product-50og" aria-haspopup="dialog">Details</button>
     </div>
   </div>
@@ -215,6 +239,7 @@
         <img id="modal-image" alt="" hidden />
         <p id="modal-desc"></p>
         <ul id="modal-flavour" class="flavour-list"></ul>
+        <ul id="modal-quantity" class="quantity-list"></ul>
       </div>
       <footer class="modal-footer">
         <a id="modal-live" class="btn" href="#" target="_blank" rel="noopener" hidden>Live</a>
