@@ -20,7 +20,7 @@ title: Home
     <div class="controls">
       <label class="search">
         <span class="visually-hidden">Search products</span>
-        <input id="project-search" type="search" placeholder="Search products…" autocomplete="off" />
+        <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
       <details class="filters">
         <summary>Filter by tech</summary>
@@ -33,7 +33,7 @@ title: Home
     </div>
   </header>
 
-  <div class="grid products" id="project-grid">
+  <div class="grid products" id="product-grid">
     {% for product in collections.products %}
       {% include "components/product-card.njk" %}
     {% endfor %}
