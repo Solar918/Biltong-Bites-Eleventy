@@ -27,21 +27,22 @@
   // Search + filters
   const searchInput = $('#product-search');
   const flavourRoot = $('#flavour-filters');
-  const flavourActives = $$('#flavour-filters input:checked').map((i) => i.value);
   const quantityRoot = $('#quantity-filters');
-  const quantityActives = $$('#quantity-filters input:checked').map((i) => i.value);
   function applyFilter() {
     const q = (searchInput?.value || '').trim().toLowerCase();
+    const flavourActives = $$('#flavour-filters input:checked').map((i) => i.value);
+    const quantityActives = $$('#quantity-filters input:checked').map((i) => i.value);
     products.forEach((el) => {
       const hay = `${el.dataset.title} ${el.dataset.desc} ${el.dataset.flavour}`;
       const matchesQuery = !q || hay.includes(q);
       const matchesFlavour = !flavourActives.length || flavourActives.every((f) => el.dataset.flavour.includes(f));
-      const matchesQuantity = !quantityActives.length || quantityActives.every((q) => el.dataset.quantity.includes(q));
+      const matchesQuantity = !quantityActives.length || quantityActives.every((qv) => el.dataset.quantity.includes(qv));
       el.style.display = matchesQuery && matchesFlavour && matchesQuantity ? '' : 'none';
     });
   }
   searchInput?.addEventListener('input', applyFilter);
-  filterRoot?.addEventListener('change', applyFilter);
+  flavourRoot?.addEventListener('change', applyFilter);
+  quantityRoot?.addEventListener('change', applyFilter);
 
   // Modal for project details
   // Modal for product details

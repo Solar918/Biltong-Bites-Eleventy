@@ -72,33 +72,37 @@
         <span class="visually-hidden">Search products</span>
         <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
-      <details class="filters">
-        <summary>Filter by flavour</summary>
-        <div class="filter-group" id="flavour-filters">
-          
-            <label><input type="checkbox" value="100g" /> <span>100g</span></label>
-          
-            <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
-          
-            <label><input type="checkbox" value="250g" /> <span>250g</span></label>
-          
-            <label><input type="checkbox" value="500g" /> <span>500g</span></label>
-          
-            <label><input type="checkbox" value="50g" /> <span>50g</span></label>
-          
-            <label><input type="checkbox" value="original" /> <span>Original</span></label>
-          
-        </div>
-      </details>
-
-      <details class="filters">
-        <summary>Filter by quantity</summary>
-        <div class="filter-group" id="quantity-filters">
-          
-            <label><input type="checkbox" value="50g" /> <span>50g</span></label>
-          
-        </div>
-      </details>
+      <div class="filter-dropdown">
+        <button class="filter-toggle">Filters</button>
+        <ul class="filter-menu">
+          <li>
+            Flavour
+            <div class="filter-group" id="flavour-filters">
+              
+                <label><input type="checkbox" value="100g" /> <span>100g</span></label>
+              
+                <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
+              
+                <label><input type="checkbox" value="250g" /> <span>250g</span></label>
+              
+                <label><input type="checkbox" value="500g" /> <span>500g</span></label>
+              
+                <label><input type="checkbox" value="50g" /> <span>50g</span></label>
+              
+                <label><input type="checkbox" value="original" /> <span>Original</span></label>
+              
+            </div>
+          </li>
+          <li>
+            Quantity
+            <div class="filter-group" id="quantity-filters">
+              
+                <label><input type="checkbox" value="50g" /> <span>50g</span></label>
+              
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </header>
 

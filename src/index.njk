@@ -22,23 +22,27 @@ title: Home
         <span class="visually-hidden">Search products</span>
         <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
-      <details class="filters">
-        <summary>Filter by flavour</summary>
-        <div class="filter-group" id="flavour-filters">
-          {% for t in collections.flavourTags %}
-            <label><input type="checkbox" value="{{ t | lower }}" /> <span>{{ t }}</span></label>
-          {% endfor %}
-        </div>
-      </details>
-
-      <details class="filters">
-        <summary>Filter by quantity</summary>
-        <div class="filter-group" id="quantity-filters">
-          {% for t in collections.quantityTags %}
-            <label><input type="checkbox" value="{{ t | lower }}" /> <span>{{ t }}</span></label>
-          {% endfor %}
-        </div>
-      </details>
+      <div class="filter-dropdown">
+        <button class="filter-toggle">Filters</button>
+        <ul class="filter-menu">
+          <li>
+            Flavour
+            <div class="filter-group" id="flavour-filters">
+              {% for t in collections.flavourTags %}
+                <label><input type="checkbox" value="{{ t | lower }}" /> <span>{{ t }}</span></label>
+              {% endfor %}
+            </div>
+          </li>
+          <li>
+            Quantity
+            <div class="filter-group" id="quantity-filters">
+              {% for t in collections.quantityTags %}
+                <label><input type="checkbox" value="{{ t | lower }}" /> <span>{{ t }}</span></label>
+              {% endfor %}
+            </div>
+          </li>
+        </ul>
+      </div>
     </div>
   </header>
 
