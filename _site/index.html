@@ -4,12 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Biltong Bites · Biltong Bites co</title>
-    <meta name="description" content="At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste." />
+    <meta name="description" content="{{ site.description }}" />
 
-    <meta property="og:title" content="Biltong Bites" />
-    <meta property="og:description" content="At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste." />
+    <meta property="og:title" content="{{ site.author.name }}" />
+    <meta property="og:description" content="{{ site.description }}" />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://biltongbites.koines.org/" />
+    <meta property="og:url" content="{{ site.url }}" />
     <meta property="og:image" content="https://biltongbites.koines.org/assets/images/placeholder.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -34,7 +34,7 @@
     <a class="skip-link" href="#main">Skip to content</a>
     <header class="site-header">
   <nav class="container nav">
-    <a class="brand" href="/" aria-label="Biltong Bites home">Biltong Bites</a>
+    <a class="brand" href="/" aria-label="{{ site.author.name }} home">{{ site.author.name }}</a>
     <button class="nav-toggle" aria-expanded="false" aria-controls="site-menu">Menu</button>
     <ul id="site-menu" class="menu">
       <li><a href="#products">Products</a></li>
@@ -55,8 +55,8 @@
       
 <section class="hero container" aria-labelledby="intro-heading">
   <div class="hero-content">
-    <h1 id="intro-heading">Hi, we're Biltong Bites.</h1>
-    <p class="lead">At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste.</p>
+    <h1 id="intro-heading">Hi, we're {{ site.author.name }}.</h1>
+    <p class="lead">{{ site.description }}</p>
     <div class="cta">
       <a href="#products" class="btn">See our products</a>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
@@ -76,19 +76,7 @@
         <summary>Filter by flavour</summary>
         <div class="filter-group" id="flavour-filters">
           
-            <label><input type="checkbox" value="d3.js" /> <span>D3.js</span></label>
-          
-            <label><input type="checkbox" value="eleventy" /> <span>Eleventy</span></label>
-          
-            <label><input type="checkbox" value="netlify" /> <span>Netlify</span></label>
-          
-            <label><input type="checkbox" value="sass" /> <span>Sass</span></label>
-          
-            <label><input type="checkbox" value="typescript" /> <span>TypeScript</span></label>
-          
-            <label><input type="checkbox" value="web components" /> <span>Web Components</span></label>
-          
-            <label><input type="checkbox" value="original" /> <span>original</span></label>
+            <label><input type="checkbox" value="original" /> <span>Original</span></label>
           
         </div>
       </details>
