@@ -23,9 +23,9 @@ title: Home
         <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
       <details class="filters">
-        <summary>Filter by tech</summary>
-        <div class="filter-group" id="tech-filters">
-          {% for t in collections.techTags %}
+        <summary>Filter by flavour</summary>
+        <div class="filter-group" id="flavour-filters">
+          {% for t in collections.flavourTags %}
             <label><input type="checkbox" value="{{ t | lower }}" /> <span>{{ t }}</span></label>
           {% endfor %}
         </div>
@@ -63,7 +63,6 @@ title: Home
   <p>
     We’re a team of four passionate 15 and 16-year-olds running Biltong Bites as part of the Young Enterprise Scheme. We handcraft our biltong using carefully selected, low-stress meat to make each bite more tender and less acidic than store-bought options. Driven by quality, teamwork, and a love for good food, we're proud to bring you a snack that's high in protein, full of flavour, and made right here by young Kiwi entrepreneurs.
   </p>
-  <a class="btn" href="#contact">Work with us</a>
 
 </section>
 
