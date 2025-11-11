@@ -5,22 +5,22 @@ title: Home
 
 <section class="hero container" aria-labelledby="intro-heading">
   <div class="hero-content">
-    <h1 id="intro-heading">Hi, I’m {{ site.author.name }}.</h1>
+    <h1 id="intro-heading">Hi, we're {{ site.author.name }}.</h1>
     <p class="lead">{{ site.description }}</p>
     <div class="cta">
-      <a href="#projects" class="btn">See my work</a>
+      <a href="#products" class="btn">See our products</a>
       <a href="#contact" class="btn btn-ghost">Get in touch</a>
     </div>
   </div>
 </section>
 
-<section id="projects" class="container section" aria-labelledby="projects-heading">
+<section id="products" class="container section" aria-labelledby="products-heading">
   <header class="section-header">
-    <h2 id="projects-heading">Projects</h2>
+    <h2 id="products-heading">Products</h2>
     <div class="controls">
       <label class="search">
-        <span class="visually-hidden">Search projects</span>
-        <input id="project-search" type="search" placeholder="Search projects…" autocomplete="off" />
+        <span class="visually-hidden">Search products</span>
+        <input id="project-search" type="search" placeholder="Search products…" autocomplete="off" />
       </label>
       <details class="filters">
         <summary>Filter by tech</summary>
@@ -33,13 +33,13 @@ title: Home
     </div>
   </header>
 
-  <div class="grid projects" id="project-grid">
-    {% for project in collections.projects %}
-      {% include "components/project-card.njk" %}
+  <div class="grid products" id="project-grid">
+    {% for product in collections.products %}
+      {% include "components/product-card.njk" %}
     {% endfor %}
   </div>
 
-  <dialog id="project-modal" aria-labelledby="modal-title">
+  <dialog id="product-modal" aria-labelledby="modal-title">
     <article class="modal-card">
       <header class="modal-header">
         <h3 id="modal-title">Title</h3>
@@ -61,19 +61,10 @@ title: Home
 <section id="about" class="container section" aria-labelledby="about-heading">
   <h2 id="about-heading">About</h2>
   <p>
-    I’m a {{ site.title | lower }}, focused on building interactive, performant, and accessible interfaces.
-    I enjoy working with modern web standards, progressive enhancement, and clean design systems.
+    We’re a team of four passionate 15 and 16-year-olds running Biltong Bites as part of the Young Enterprise Scheme. We handcraft our biltong using carefully selected, low-stress meat to make each bite more tender and less acidic than store-bought options. Driven by quality, teamwork, and a love for good food, we're proud to bring you a snack that's high in protein, full of flavour, and made right here by young Kiwi entrepreneurs.
   </p>
-  <ul class="skills">
-    <li>JavaScript</li>
-    <li>TypeScript</li>
-    <li>Node.js</li>
-    <li>CSS/Sass</li>
-    <li>Eleventy</li>
-    <li>React</li>
-  </ul>
-  <a class="btn" href="#contact">Work with me</a>
-  
+  <a class="btn" href="#contact">Work with us</a>
+
 </section>
 
 <section id="contact" class="container section" aria-labelledby="contact-heading">
