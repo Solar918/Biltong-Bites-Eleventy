@@ -212,7 +212,9 @@ body.modal-open {
 /* Animations */
 @media (prefers-reduced-motion: no-preference) {
   .products .product { opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
-  .products .product.in-view { opacity: 1; transform: translateY(0); }
+.products .product.in-view { opacity: 1; transform: translateY(0); }
+/* Enlarge card on hover to highlight focus */
+.products .product:hover { transform: translateY(0) scale(1.05); }
 }
 
 @media (max-width: 720px) {
