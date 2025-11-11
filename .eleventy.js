@@ -18,6 +18,15 @@ module.exports = function(eleventyConfig) {
     return Array.from(tagSet).sort();
   });
 
+  eleventyConfig.addCollection("quantityTags", function(collectionApi) {
+    let tagSet = new Set();
+    collectionApi.getFilteredByGlob("src/products/*.md").forEach(item => {
+      if (Array.isArray(item.data.quantity)) {
+        item.data.quantity.forEach(q => tagSet.add(q));
+      }
+    });
+    return Array.from(tagSet).sort();
+  });
   return {
     dir: {
       input: "src",

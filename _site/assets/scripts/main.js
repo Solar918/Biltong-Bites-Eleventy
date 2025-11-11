@@ -26,15 +26,18 @@
 
   // Search + filters
   const searchInput = $('#product-search');
-  const filterRoot = $('#flavour-filters');
+  const flavourRoot = $('#flavour-filters');
+  const flavourActives = $$('#flavour-filters input:checked').map((i) => i.value);
+  const quantityRoot = $('#quantity-filters');
+  const quantityActives = $$('#quantity-filters input:checked').map((i) => i.value);
   function applyFilter() {
     const q = (searchInput?.value || '').trim().toLowerCase();
-    const actives = $$('#flavour-filters input:checked').map((i) => i.value);
     products.forEach((el) => {
       const hay = `${el.dataset.title} ${el.dataset.desc} ${el.dataset.flavour}`;
       const matchesQuery = !q || hay.includes(q);
-      const matchesFlavour = !actives.length || actives.every((f) => el.dataset.flavour.includes(f));
-      el.style.display = matchesQuery && matchesFlavour ? '' : 'none';
+      const matchesFlavour = !flavourActives.length || flavourActives.every((f) => el.dataset.flavour.includes(f));
+      const matchesQuantity = !quantityActives.length || quantityActives.every((q) => el.dataset.quantity.includes(q));
+      el.style.display = matchesQuery && matchesFlavour && matchesQuantity ? '' : 'none';
     });
   }
   searchInput?.addEventListener('input', applyFilter);
@@ -47,6 +50,7 @@
   const modalDesc = $('#modal-desc');
   const modalImg = $('#modal-image');
   const modalFlavour = $('#modal-flavour');
+  const modalQuantity = $('#modal-quantity');
   const modalLive = $('#modal-live');
   const modalCode = $('#modal-code');
   let lastFocused = null;
@@ -61,9 +65,17 @@
     if (img) {
       modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
     } else { modalImg.hidden = true; }
-    modalFlavour.innerHTML = '';
+    modalFlavour.textContent = '';
+    modalQuantity.textContent = '';
     (card.dataset.flavour || '').split(' ').filter(Boolean).forEach((f) => {
-      const li = document.createElement('li'); li.textContent = f; modalFlavour.appendChild(li);
+      const li = document.createElement('li');
+      li.textContent = f;
+      modalFlavour.appendChild(li);
+    });
+    (card.dataset.quantity || '').split(' ').filter(Boolean).forEach((q) => {
+      const li = document.createElement('li');
+      li.textContent = q;
+      modalQuantity.appendChild(li);
     });
     const live = $('a.btn', card); const code = $('a.btn.btn-ghost', card);
     if (live) { modalLive.href = live.href; modalLive.hidden = false; } else modalLive.hidden = true;
