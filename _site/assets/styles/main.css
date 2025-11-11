@@ -56,7 +56,7 @@ body {
 
 /* Grid */
 .grid { display: grid; gap: 1rem; }
-.projects { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.products { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 
 /* Cards */
 .card { background: var(--card); border: 1px solid var(--border); border-radius: .9rem; overflow: clip; display: grid; grid-template-rows: auto 1fr; box-shadow: 0 1px 0 rgba(0,0,0,.05); transition: transform .16s ease, box-shadow .16s ease; }
@@ -150,8 +150,8 @@ dialog::backdrop { background: color-mix(in oklab, black 60%, transparent); }
 
 /* Animations */
 @media (prefers-reduced-motion: no-preference) {
-  .projects .project { opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
-  .projects .project.in-view { opacity: 1; transform: translateY(0); }
+  .products .product { opacity: 0; transform: translateY(8px); transition: opacity .4s ease, transform .4s ease; }
+  .products .product.in-view { opacity: 1; transform: translateY(0); }
 }
 
 @media (max-width: 720px) {
