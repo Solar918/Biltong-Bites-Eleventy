@@ -105,13 +105,16 @@ label { display: grid; gap: .35rem; }
 .filter-menu {
   display: none;
   position: absolute;
+  /* Position below toggle with invisible hover gap */
   top: 100%;
   left: 0;
   background: var(--card);
-  border: 1px solid var(--border);
+  /* Invisible 2px border to prevent dropdown gap closing on hover */
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--border);
   border-radius: .25rem;
   list-style: none;
-  margin: .25rem 0 0;
+  margin: calc(.25rem - 2px) 0 0;
   padding: .25rem 0;
   z-index: 10;
 }
