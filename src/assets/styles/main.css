@@ -165,7 +165,6 @@ label { display: grid; gap: .35rem; }
 }
 .filter-dropdown.open .filter-menu {
   display: block;
-  border: 5px solid transparent;
 }
 
 /* Nested filter group menus */
