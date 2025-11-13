@@ -126,6 +126,7 @@ label { display: grid; gap: .35rem; }
 .filter-dropdown {
   position: relative;
   display: inline-block;
+  border: 5px solid none;
 }
 .filter-toggle {
   background: var(--primary);
