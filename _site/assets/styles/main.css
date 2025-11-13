@@ -126,6 +126,7 @@ label { display: grid; gap: .35rem; }
 .filter-dropdown {
   position: relative;
   display: inline-block;
+  border: 5px solid transparent;
 }
 .filter-toggle {
   background: var(--primary);
@@ -220,25 +221,25 @@ label { display: grid; gap: .35rem; }
   min-width: 240px;
 }
 
-/* Modal */
+/* Cart */
 dialog { border: none; border-radius: 1rem; padding: 0; background: transparent; }
 dialog::backdrop { background: color-mix(in oklab, black 60%, transparent); }
-.modal-card { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 1rem; width: min(720px, 92vw); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
-.modal-header { display: flex; align-items: center; justify-content: space-between; padding: .9rem 1rem; border-bottom: 1px solid var(--border); }
-.modal-body { padding: 1rem; }
-.modal-footer { display: flex; gap: .5rem; padding: .9rem 1rem; border-top: 1px solid var(--border); }
-.modal-backdrop {
+.cart-card { background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 1rem; width: min(720px, 92vw); overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; }
+.cart-header { display: flex; align-items: center; justify-content: space-between; padding: .9rem 1rem; border-bottom: 1px solid var(--border); }
+.cart-body { padding: 1rem; }
+.cart-footer { display: flex; gap: .5rem; padding: .9rem 1rem; border-top: 1px solid var(--border); }
+.cart-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   z-index: var(--z-backdrop, 999);
 }
 
-/* Prevent background scroll when modal is open */
-body.modal-open {
+/* Prevent background scroll when cart is open */
+body.cart-open {
   overflow: hidden;
 }
-.modal-body img { max-width: 100%; border-radius: .5rem; margin-bottom: .75rem; }
+.cart-body img { max-width: 100%; border-radius: .5rem; margin-bottom: .75rem; }
 
 /* Animations */
 @media (prefers-reduced-motion: no-preference) {
