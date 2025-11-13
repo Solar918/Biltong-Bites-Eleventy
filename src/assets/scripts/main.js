@@ -51,8 +51,6 @@
   const modalPrice = $('#modal-price');
   const modalDesc = $('#modal-desc');
   const modalImg = $('#modal-image');
-  const modalLive = $('#modal-live');
-  const modalCode = $('#modal-code');
   let lastFocused = null;
 
   function openModal(slug) {
@@ -68,9 +66,6 @@
     if (img) {
       modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
     } else { modalImg.hidden = true; }
-    const live = $('a.btn', card); const code = $('a.btn.btn-ghost', card);
-    if (live) { modalLive.href = live.href; modalLive.hidden = false; } else modalLive.hidden = true;
-    if (code) { modalCode.href = code.href; modalCode.hidden = false; } else modalCode.hidden = true;
     modal.showModal();
     document.body.classList.add('modal-open');
     modal.addEventListener('keydown', onModalKeydown);
