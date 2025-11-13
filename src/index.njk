@@ -52,19 +52,19 @@ title: Home
     {% endfor %}
   </div>
 
-  <dialog id="product-cart" aria-labelledby="cart-title">
-    <article class="cart-card">
-      <header class="cart-header">
-        <h3 id="cart-title">Title</h3>
-        <button class="icon-btn" data-cart-close aria-label="Close">✕</button>
+  <dialog id="product-modal" aria-labelledby="modal-title">
+    <article class="modal-card">
+      <header class="modal-header">
+        <h3 id="modal-title">Title</h3>
+        <button class="icon-btn" data-modal-close aria-label="Close">✕</button>
       </header>
-      <div class="cart-body">
-        <img id="cart-image" alt="" hidden />
-        <p id="cart-desc"></p>
+      <div class="modal-body">
+        <img id="modal-image" alt="" hidden />
+        <p id="modal-desc"></p>
       </div>
-      <footer class="cart-footer">
-        <a id="cart-live" class="btn" href="#" target="_blank" rel="noopener" hidden>Live</a>
-        <a id="cart-code" class="btn btn-ghost" href="#" target="_blank" rel="noopener" hidden>Code</a>
+      <footer class="modal-footer">
+        <a id="modal-live" class="btn" href="#" target="_blank" rel="noopener" hidden>Live</a>
+        <a id="modal-code" class="btn btn-ghost" href="#" target="_blank" rel="noopener" hidden>Code</a>
       </footer>
     </article>
   </dialog>

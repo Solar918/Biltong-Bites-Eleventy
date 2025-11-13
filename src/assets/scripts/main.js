@@ -44,56 +44,56 @@
   flavourRoot?.addEventListener('change', applyFilter);
   quantityRoot?.addEventListener('change', applyFilter);
 
-  // cart for project details
-  // cart for product details
-  const cart = $('#product-cart');
-  const cartTitle = $('#cart-title');
-  const cartDesc = $('#cart-desc');
-  const cartImg = $('#cart-image');
-  const cartLive = $('#cart-live');
-  const cartCode = $('#cart-code');
+  // Modal for project details
+  // Modal for product details
+  const modal = $('#product-modal');
+  const modalTitle = $('#modal-title');
+  const modalDesc = $('#modal-desc');
+  const modalImg = $('#modal-image');
+  const modalLive = $('#modal-live');
+  const modalCode = $('#modal-code');
   let lastFocused = null;
 
-  function opencart(slug) {
+  function openModal(slug) {
     lastFocused = document.activeElement;
     const card = $(`.product [data-slug="${CSS.escape(slug)}"]`)?.closest('.product');
-    if (!card || !cart) return;
-    cartTitle.textContent = $('.card-title', card)?.textContent || '';
-    cartDesc.textContent = $('.card-desc', card)?.textContent || '';
+    if (!card || !modal) return;
+    modalTitle.textContent = $('.card-title', card)?.textContent || '';
+    modalDesc.textContent = $('.card-desc', card)?.textContent || '';
     const img = $('img', card);
     if (img) {
-      cartImg.src = img.src; cartImg.alt = img.alt; cartImg.hidden = false;
-    } else { cartImg.hidden = true; }
+      modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
+    } else { modalImg.hidden = true; }
     const live = $('a.btn', card); const code = $('a.btn.btn-ghost', card);
-    if (live) { cartLive.href = live.href; cartLive.hidden = false; } else cartLive.hidden = true;
-    if (code) { cartCode.href = code.href; cartCode.hidden = false; } else cartCode.hidden = true;
-    cart.showcart();
-    document.body.classList.add('cart-open');
-    cart.addEventListener('keydown', oncartKeydown);
+    if (live) { modalLive.href = live.href; modalLive.hidden = false; } else modalLive.hidden = true;
+    if (code) { modalCode.href = code.href; modalCode.hidden = false; } else modalCode.hidden = true;
+    modal.showModal();
+    document.body.classList.add('modal-open');
+    modal.addEventListener('keydown', onModalKeydown);
   }
-  function closecart() {
-    if (!cart) return;
-    cart.close();
-    document.body.classList.remove('cart-open');
-    cart.removeEventListener('keydown', oncartKeydown);
+  function closeModal() {
+    if (!modal) return;
+    modal.close();
+    document.body.classList.remove('modal-open');
+    modal.removeEventListener('keydown', onModalKeydown);
     lastFocused?.focus();
   }
-  function oncartKeydown(e) {
-    if (e.key === 'Escape') closecart();
+  function onModalKeydown(e) {
+    if (e.key === 'Escape') closeModal();
     if (e.key === 'Tab') trapFocus(e);
   }
   function trapFocus(e) {
-    const focusables = $$('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])', cart).filter((el) => !el.hasAttribute('disabled'));
+    const focusables = $$('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])', modal).filter((el) => !el.hasAttribute('disabled'));
     if (!focusables.length) return;
     const first = focusables[0]; const last = focusables[focusables.length - 1];
     if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
     else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
   }
   document.addEventListener('click', (e) => {
-    const openBtn = e.target.closest('[data-cart-open]');
-    const closeBtn = e.target.closest('[data-cart-close]');
-    if (openBtn) opencart(openBtn.dataset.slug);
-    if (closeBtn || e.target === cart) closecart();
+    const openBtn = e.target.closest('[data-modal-open]');
+    const closeBtn = e.target.closest('[data-modal-close]');
+    if (openBtn) openModal(openBtn.dataset.slug);
+    if (closeBtn || e.target === modal) closeModal();
   });
 
   // Click-toggle filter dropdown menus and close on outside click
