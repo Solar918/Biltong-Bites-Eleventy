@@ -110,7 +110,7 @@ body {
 .card-media { background: color-mix(in oklab, var(--card) 70%, black); display: grid; place-items: center; }
 .card-media img { width: 100%; height: 100%; object-fit: contain; }
 .placeholder { width: 60%; height: 60%; background: repeating-linear-gradient(45deg, var(--border), var(--border) 10px, transparent 10px, transparent 20px); border-radius: .5rem; }
-.card-body { padding: 1rem; display: grid; gap: .5rem; }
+.card-body { padding: 1rem; display: grid; gap: .5rem; grid-template-rows: auto 1fr auto; }
 .card-title { margin: 0; font-size: 1.1rem; }
 .card-desc { margin: 0; color: var(--muted); }
 .flavour-list { display: flex; flex-wrap: wrap; gap: .35rem .5rem; padding: 0; margin: .25rem 0 0; list-style: none; }
@@ -284,6 +284,7 @@ body.modal-open {
 /* Hover highlight for Details button on product cards */
 .card-actions .btn {
   transition: box-shadow 0.15s ease;
+  height: 2.5rem;
 }
 .card-actions .btn:hover {
   box-shadow: 0 3px 8px rgba(0,0,0,0.08);
