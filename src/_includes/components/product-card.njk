@@ -2,7 +2,8 @@
   data-title="{{ product.data.title | lower }}"
   data-desc="{{ (product.data.description or '') | lower }}"
   data-flavour="{{ (product.data.flavour or []).join(' ').toLowerCase() }}"
-  data-quantity="{{ (product.data.quantity or []).join(' ').toLowerCase() }}">
+  data-quantity="{{ (product.data.quantity or []).join(' ').toLowerCase() }}"
+  data-price="{{ product.data.price or '' }}">
   <div class="card-media">
     {% if product.data.image %}
       <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }} screenshot" />

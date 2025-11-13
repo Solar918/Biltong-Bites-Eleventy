@@ -48,6 +48,7 @@
   // Modal for product details
   const modal = $('#product-modal');
   const modalTitle = $('#modal-title');
+  const modalPrice = $('#modal-price');
   const modalDesc = $('#modal-desc');
   const modalImg = $('#modal-image');
   const modalLive = $('#modal-live');
@@ -59,6 +60,9 @@
     const card = $(`.product [data-slug="${CSS.escape(slug)}"]`)?.closest('.product');
     if (!card || !modal) return;
     modalTitle.textContent = $('.card-title', card)?.textContent || '';
+    modalPrice.textContent = card.dataset.price
+      ? `$${card.dataset.price}`
+      : '';
     modalDesc.textContent = $('.card-desc', card)?.textContent || '';
     const img = $('img', card);
     if (img) {

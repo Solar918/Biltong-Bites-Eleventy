@@ -1,6 +1,7 @@
 ---
 title: Original Biltong - 50g
 description: A small, tasty hit of biltong—perfect for light snacking.
+price: 5.50
 flavour: ["Original"]
 quantity: ["50g"]
 url: https://example.com/hello
