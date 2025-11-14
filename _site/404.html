@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="no-js" data-theme="light">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,7 +26,7 @@
           const theme = stored || (prefersDark ? 'dark' : 'light');
           document.documentElement.setAttribute('data-theme', theme);
           document.documentElement.classList.remove('no-js');
-        } catch (e) {}
+        } catch (_e) {}
       })();
     </script>
   </head>
@@ -40,10 +40,9 @@
       <li><a href="#products">Products</a></li>
       <li><a href="#about">About</a></li>
       <li><a href="#contact">Contact</a></li>
-      <li><button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+      <li><button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
   <span class="icon" aria-hidden="true">🌗</span>
 </button>
-
 </li>
     </ul>
   </nav>
@@ -77,4 +76,3 @@
     <script defer src="/assets/scripts/main.js"></script>
   </body>
   </html>
-

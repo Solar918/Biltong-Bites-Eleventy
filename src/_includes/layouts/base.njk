@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="no-js" data-theme="light">
+<html lang="en" class="no-js">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -26,7 +26,7 @@
           const theme = stored || (prefersDark ? 'dark' : 'light');
           document.documentElement.setAttribute('data-theme', theme);
           document.documentElement.classList.remove('no-js');
-        } catch (e) {}
+        } catch (_e) {}
       })();
     </script>
   </head>
@@ -42,4 +42,3 @@
     <script defer src="/assets/scripts/main.js"></script>
   </body>
   </html>
-

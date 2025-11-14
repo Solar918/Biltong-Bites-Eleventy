@@ -2,15 +2,29 @@
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+
   // Theme toggle
-  const themeToggle = $('#theme-toggle');
+  const themeToggles = $$('.theme-toggle');
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('theme', theme); } catch (e) {}
+    try { localStorage.setItem('theme', theme); } catch {}
+    // Update toggle icons
+    themeToggles.forEach(btn => {
+      const icon = btn.querySelector('.icon');
+      if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+    });
   }
-  themeToggle?.addEventListener('click', () => {
-    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    setTheme(next);
+  // Initialize theme from saved preference or OS setting
+  try {
+    const stored = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    setTheme(stored || (prefersDark ? 'dark' : 'light'));
+  } catch {}
+  themeToggles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+    });
   });
 
   // Footer year
@@ -44,56 +58,6 @@
   flavourRoot?.addEventListener('change', applyFilter);
   quantityRoot?.addEventListener('change', applyFilter);
 
-  // Modal for project details
-  // Modal for product details
-  const modal = $('#product-modal');
-  const modalTitle = $('#modal-title');
-  const modalPrice = $('#modal-price');
-  const modalDesc = $('#modal-desc');
-  const modalImg = $('#modal-image');
-  let lastFocused = null;
-
-  function openModal(slug) {
-    lastFocused = document.activeElement;
-    const card = $(`.product [data-slug="${CSS.escape(slug)}"]`)?.closest('.product');
-    if (!card || !modal) return;
-    modalTitle.textContent = $('.card-title', card)?.textContent || '';
-    modalPrice.textContent = card.dataset.price
-      ? `$${card.dataset.price}`
-      : '';
-    modalDesc.textContent = $('.card-desc', card)?.textContent || '';
-    const img = $('img', card);
-    if (img) {
-      modalImg.src = img.src; modalImg.alt = img.alt; modalImg.hidden = false;
-    } else { modalImg.hidden = true; }
-    modal.showModal();
-    document.body.classList.add('modal-open');
-    modal.addEventListener('keydown', onModalKeydown);
-  }
-  function closeModal() {
-    if (!modal) return;
-    modal.close();
-    document.body.classList.remove('modal-open');
-    modal.removeEventListener('keydown', onModalKeydown);
-    lastFocused?.focus();
-  }
-  function onModalKeydown(e) {
-    if (e.key === 'Escape') closeModal();
-    if (e.key === 'Tab') trapFocus(e);
-  }
-  function trapFocus(e) {
-    const focusables = $$('a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])', modal).filter((el) => !el.hasAttribute('disabled'));
-    if (!focusables.length) return;
-    const first = focusables[0]; const last = focusables[focusables.length - 1];
-    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
-    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
-  }
-  document.addEventListener('click', (e) => {
-    const openBtn = e.target.closest('[data-modal-open]');
-    const closeBtn = e.target.closest('[data-modal-close]');
-    if (openBtn) openModal(openBtn.dataset.slug);
-    if (closeBtn || e.target === modal) closeModal();
-  });
 
   // Click-toggle filter dropdown menus and close on outside click
   $$('.filter-toggle').forEach(btn => {
@@ -111,7 +75,22 @@
   const prefetch = (url) => {
     try { const link = Object.assign(document.createElement('link'), { rel: 'prefetch', href: url }); document.head.appendChild(link); } catch (e) {}
   };
-  document.addEventListener('mouseover', (e) => {
-    const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
-  }, { passive: true });
+document.addEventListener('mouseover', (e) => {
+  const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
+}, { passive: true });
+
+// Quantity selector logic on detail page
+(() => {
+  const selector = document.querySelector('.quantity-selector');
+  if (!selector) return;
+  const input = selector.querySelector('.qty-input');
+  selector.querySelector('.minus').addEventListener('click', () => {
+    const val = Math.max(1, parseInt(input.value, 10) - 1);
+    input.value = val;
+  });
+  selector.querySelector('.plus').addEventListener('click', () => {
+    const val = parseInt(input.value, 10) + 1;
+    input.value = val;
+  });
+})();
 })();

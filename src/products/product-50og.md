@@ -1,4 +1,5 @@
 ---
+layout: layouts/product.njk
 title: Original Biltong - 50g
 description: A small, tasty hit of biltong—perfect for light snacking.
 price: 5.00
