@@ -164,17 +164,26 @@ label { display: grid; gap: .35rem; }
   display: none;
 }
 
- .product-detail {
+/* Product detail layout: header, info, and button beside image */
+.product-detail {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  align-items: start;
+  grid-template-areas:
+    "header image"
+    "info    image"
+    ".      button";
+  column-gap: 2rem;
+  row-gap: 20px;
 }
 
+.detail-image {
+  grid-area: image;
+}
  .detail-image img {
   max-width: 100%;
   height: auto;
   display: block;
+  margin-top: 0.5rem;
   margin-bottom: 1rem;
   border-radius: 0.5rem;
 }
@@ -185,6 +194,24 @@ label { display: grid; gap: .35rem; }
   padding: .4rem .8rem;
   border-radius: .25rem;
   cursor: pointer;
+}
+/* Place header, info, and back button in grid areas */
+.product-detail header {
+  grid-area: header;
+}
+
+.detail-info {
+  grid-area: info;
+}
+
+.product-detail .btn {
+  grid-area: button;
+}
+
+/* Lift description up and enlarge font */
+.detail-info p {
+  margin-top: -100px !important;
+  font-size: 1.125rem;
 }
 .filter-menu {
   display: none;

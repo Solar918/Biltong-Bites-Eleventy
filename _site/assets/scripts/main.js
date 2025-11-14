@@ -84,13 +84,31 @@ document.addEventListener('mouseover', (e) => {
   const selector = document.querySelector('.quantity-selector');
   if (!selector) return;
   const input = selector.querySelector('.qty-input');
+  const priceEl = document.querySelector('.price');
+  const unitPrice = parseFloat(priceEl.dataset.unitPrice);
+
+  function updatePrice(qty) {
+    priceEl.textContent = '$' + (unitPrice * qty).toFixed(2);
+  }
+
+  // initialize total
+  updatePrice(parseInt(input.value, 10));
+
   selector.querySelector('.minus').addEventListener('click', () => {
     const val = Math.max(1, parseInt(input.value, 10) - 1);
     input.value = val;
+    updatePrice(val);
   });
   selector.querySelector('.plus').addEventListener('click', () => {
     const val = parseInt(input.value, 10) + 1;
     input.value = val;
+    updatePrice(val);
+  });
+  input.addEventListener('input', () => {
+    let val = parseInt(input.value, 10);
+    if (isNaN(val) || val < 1) val = 1;
+    input.value = val;
+    updatePrice(val);
   });
 })();
 })();

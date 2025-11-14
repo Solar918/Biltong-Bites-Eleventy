@@ -7,7 +7,9 @@ description: "{{ description }}"
 <article class="container product-detail">
   <header>
     <h1>{{ title }}</h1>
-    {% if price %}<p class="price">${{ price }}</p>{% endif %}
+    {% if price %}
+    <p class="price" data-unit-price="{{ price }}">${{ price }}</p>
+    {% endif %}
     <div class="quantity-selector">
       <button type="button" class="qty-btn minus" aria-label="Decrease quantity">−</button>
       <input type="number" class="qty-input" value="1" min="1" aria-label="Quantity" />
