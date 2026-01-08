@@ -6,14 +6,6 @@
   </url>
 
   <url>
-    <loc>https://biltongbites.koines.org/cart/</loc>
-  </url>
-
-  <url>
-    <loc>https://biltongbites.koines.org/checkout/</loc>
-  </url>
-
-  <url>
     <loc>https://biltongbites.koines.org/</loc>
   </url>
 
@@ -35,6 +27,14 @@
 
   <url>
     <loc>https://biltongbites.koines.org/products/product-50og/</loc>
+  </url>
+
+  <url>
+    <loc>https://biltongbites.koines.org/cart/</loc>
+  </url>
+
+  <url>
+    <loc>https://biltongbites.koines.org/checkout/</loc>
   </url>
 
 </urlset>
