@@ -1,0 +1,18 @@
+---
+layout: layouts/base.njk
+title: Checkout
+description: Enter your email to receive payment details
+---
+
+<article class="container checkout-page">
+  <header>
+    <h1>Checkout</h1>
+  </header>
+  <form id="checkout-form">
+    <label for="email">Email Address</label>
+    <input type="email" id="email" name="email" required />
+    <button type="submit" class="btn">Send Payment Details</button>
+  </form>
+  <div id="email-preview" class="email-preview"></div>
+  <a href="/cart/" class="btn btn-ghost">Back to cart</a>
+</article>

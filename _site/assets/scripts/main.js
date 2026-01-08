@@ -166,11 +166,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const li = document.createElement('li');
     const titleSpan = document.createElement('span');
     titleSpan.textContent = item.title;
-    const qtySpan = document.createElement('span');
-    qtySpan.textContent = `x ${item.quantity}`;
-    li.appendChild(titleSpan);
-    li.appendChild(qtySpan);
-    list.appendChild(li);
+
+    // Quantity controls
+    const qtyContainer = document.createElement('div');
+    qtyContainer.className = 'quantity-selector';
+    const minusBtn = document.createElement('button');
+    minusBtn.type = 'button';
+    minusBtn.className = 'qty-btn minus';
+    minusBtn.setAttribute('aria-label', 'Decrease quantity');
+    minusBtn.textContent = '−';
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.className = 'qty-input';
+    input.value = item.quantity;
+    input.min = 1;
+    const plusBtn = document.createElement('button');
+    plusBtn.type = 'button';
+    plusBtn.className = 'qty-btn plus';
+    plusBtn.setAttribute('aria-label', 'Increase quantity');
+    plusBtn.textContent = '+';
+    qtyContainer.append(minusBtn, input, plusBtn);
+
+    // Remove-from-cart button
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'remove-btn';
+    removeBtn.setAttribute('aria-label', 'Remove item');
+    removeBtn.textContent = '🗑️';
+
+    // Price for this line (unit price * quantity)
+    const priceSpan = document.createElement('span');
+    priceSpan.textContent = `$${(item.price * item.quantity).toFixed(2)}`;
+
+    // Handlers to update quantity
+    function updateLine(q) {
+      const now = Date.now();
+      const cartData = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+      const it = cartData.find(i => i.id === item.id);
+      if (it) {
+        it.quantity = q;
+        it.timestamp = now;
+        localStorage.setItem('biltongCart', JSON.stringify(cartData));
+        input.value = q;
+        priceSpan.textContent = `$${(item.price * q).toFixed(2)}`;
+        recalcTotal();
+      }
+    }
+    minusBtn.addEventListener('click', () => updateLine(Math.max(1, parseInt(input.value, 10) - 1)));
+    plusBtn.addEventListener('click', () => updateLine(parseInt(input.value, 10) + 1));
+    input.addEventListener('input', () => {
+      let v = parseInt(input.value, 10);
+      if (isNaN(v) || v < 1) v = 1;
+      updateLine(v);
+    });
+
+    li.append(titleSpan, priceSpan, qtyContainer, removeBtn);
+    list.append(li);
     total += (item.price || 0) * item.quantity;
   });
   container.appendChild(list);
@@ -178,4 +228,31 @@ document.addEventListener('DOMContentLoaded', () => {
   totalEl.className = 'cart-total';
   totalEl.textContent = `Total: $${total.toFixed(2)}`;
   container.appendChild(totalEl);
+  // Recalculate cart total after quantity changes
+  function recalcTotal() {
+    const data = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+    const sum = data.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+    totalEl.textContent = `Total: $${sum.toFixed(2)}`;
+  }
+});
+
+// Checkout page email flow
+document.addEventListener('DOMContentLoaded', () => {
+  const form = document.getElementById('checkout-form');
+  if (!form) return;
+  const preview = document.getElementById('email-preview');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = form.email.value.trim();
+    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+    let body = `Thank you for your order!\n\nPlease complete your payment to our bank account:\n\nAccount Name: Biltong Bites\nAccount Number: 12345678\nSort Code: 00-00-00\n\nOrder details:\n`;
+    let total = 0;
+    cart.forEach(item => {
+      body += `- ${item.title} x ${item.quantity} @ $${item.price.toFixed(2)}\n`;
+      total += item.price * item.quantity;
+    });
+    body += `\nTotal: $${total.toFixed(2)}\n\nCheers,\nBiltong Bites Team`;
+    if (preview) preview.textContent = body;
+    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Biltong Bites Order Payment Details')}&body=${encodeURIComponent(body)}`;
+  });
 });

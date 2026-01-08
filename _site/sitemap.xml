@@ -33,5 +33,9 @@
     <loc>https://biltongbites.koines.org/cart/</loc>
   </url>
 
+  <url>
+    <loc>https://biltongbites.koines.org/checkout/</loc>
+  </url>
+
 </urlset>
 
