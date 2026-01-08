@@ -110,5 +110,72 @@ document.addEventListener('mouseover', (e) => {
     input.value = val;
     updatePrice(val);
   });
+
+  // Cart logic: persist items in localStorage for 48h
+  function purgeExpiredCart() {
+    const now = Date.now();
+    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+    const valid = cart.filter(item => item.timestamp + 48 * 60 * 60 * 1000 > now);
+    localStorage.setItem('biltongCart', JSON.stringify(valid));
+    return valid;
+  }
+  purgeExpiredCart();
+
+  const addToCartBtn = selector.querySelector('.add-to-cart');
+  addToCartBtn.addEventListener('click', () => {
+    const qty = parseInt(input.value, 10);
+    const id = window.location.pathname;
+    const title = document.querySelector('h1').textContent.trim();
+    const now = Date.now();
+    const cart = purgeExpiredCart();
+    const existing = cart.find(item => item.id === id);
+    if (existing) {
+      existing.quantity = qty;
+      existing.timestamp = now;
+      existing.price = unitPrice;
+    } else {
+      cart.push({ id, title, quantity: qty, price: unitPrice, timestamp: now });
+    }
+    localStorage.setItem('biltongCart', JSON.stringify(cart));
+    alert(qty + ' item(s) added to cart');
+  });
 })();
+
+  // Cart toggle click handler: show cart contents
+  const cartToggle = document.getElementById('cart-toggle');
+  if (cartToggle) {
+    cartToggle.addEventListener('click', () => {
+      window.location.href = '/cart/';
+    });
+  }
 })();
+
+// Cart page rendering
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('cart-contents');
+  if (!container) return;
+  const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+  if (!cart.length) {
+    container.textContent = 'Your cart is empty';
+    return;
+  }
+  const list = document.createElement('ul');
+  list.className = 'cart-items';
+  let total = 0;
+  cart.forEach(item => {
+    const li = document.createElement('li');
+    const titleSpan = document.createElement('span');
+    titleSpan.textContent = item.title;
+    const qtySpan = document.createElement('span');
+    qtySpan.textContent = `x ${item.quantity}`;
+    li.appendChild(titleSpan);
+    li.appendChild(qtySpan);
+    list.appendChild(li);
+    total += (item.price || 0) * item.quantity;
+  });
+  container.appendChild(list);
+  const totalEl = document.createElement('div');
+  totalEl.className = 'cart-total';
+  totalEl.textContent = `Total: $${total.toFixed(2)}`;
+  container.appendChild(totalEl);
+});
