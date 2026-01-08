@@ -220,6 +220,14 @@ document.addEventListener('DOMContentLoaded', () => {
     removeBtn.className = 'remove-btn';
     removeBtn.setAttribute('aria-label', 'Remove item');
     removeBtn.textContent = '🗑️';
+    removeBtn.addEventListener('click', () => {
+      // remove item from cart and update UI
+      let cartData = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+      cartData = cartData.filter(i => i.id !== item.id);
+      localStorage.setItem('biltongCart', JSON.stringify(cartData));
+      li.remove();
+      recalcTotal();
+    });
 
     // Unit price for this line
     const unitSpan = document.createElement('span');
