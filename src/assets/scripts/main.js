@@ -193,6 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
     removeBtn.setAttribute('aria-label', 'Remove item');
     removeBtn.textContent = '🗑️';
 
+    // Unit price for this line
+    const unitSpan = document.createElement('span');
+    unitSpan.textContent = `$${item.price.toFixed(2)}`;
     // Price for this line (unit price * quantity)
     const priceSpan = document.createElement('span');
     priceSpan.textContent = `$${(item.price * item.quantity).toFixed(2)}`;
@@ -219,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateLine(v);
     });
 
-    li.append(titleSpan, priceSpan, qtyContainer, removeBtn);
+    li.append(titleSpan, unitSpan, qtyContainer, priceSpan, removeBtn);
     list.append(li);
     total += (item.price || 0) * item.quantity;
   });
