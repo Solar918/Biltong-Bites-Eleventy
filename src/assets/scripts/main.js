@@ -148,6 +148,34 @@ document.addEventListener('mouseover', (e) => {
       window.location.href = '/cart/';
     });
   }
+
+  // Add to cart buttons on listing pages
+  (function() {
+    const buttons = $$('.card-actions .add-to-cart');
+    if (!buttons.length) return;
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const title = btn.dataset.title;
+        const price = parseFloat(btn.dataset.price);
+        const qty = 1;
+        const now = Date.now();
+        let cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+        cart = cart.filter(item => item.timestamp + 48 * 60 * 60 * 1000 > now);
+        const existing = cart.find(item => item.id === id);
+        if (existing) {
+          existing.quantity += qty;
+          existing.timestamp = now;
+          existing.price = price;
+        } else {
+          cart.push({ id, title, quantity: qty, price, timestamp: now });
+        }
+        localStorage.setItem('biltongCart', JSON.stringify(cart));
+        alert(qty + ' item(s) added to cart');
+      });
+    });
+  })();
+
 })();
 
 // Cart page rendering

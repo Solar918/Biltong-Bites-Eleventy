@@ -17,6 +17,7 @@
     <p class="card-desc">{{ product.data.description }}</p>
     <div class="card-actions">
       <a class="btn btn-ghost more" href="{{ product.url }}">Details</a>
+      <button type="button" class="btn add-to-cart" data-id="{{ product.url }}" data-title="{{ product.data.title }}" data-price="{{ product.data.price }}" aria-label="Add to cart">Add to Cart</button>
     </div>
   </div>
 </article>
