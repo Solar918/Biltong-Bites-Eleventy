@@ -15,6 +15,9 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="@" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" href="/assets/styles/main.css" as="style" />
     <link rel="stylesheet" href="/assets/styles/main.css" />
     <script>
@@ -22,8 +25,7 @@
       (function () {
         try {
           const stored = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
+          const theme = stored || 'dark';
           document.documentElement.setAttribute('data-theme', theme);
           document.documentElement.classList.remove('no-js');
         } catch (_e) {}
@@ -42,10 +44,11 @@
       <li><a href="/#contact">Contact</a></li>
       <li><button id="cart-toggle" type="button" class="cart-toggle" aria-label="View cart" title="View cart">
   <span class="icon" aria-hidden="true">🛒</span>
+  <span class="cart-count"></span>
 </button>
 </li>
-      <li><button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
-  <span class="icon" aria-hidden="true">🌗</span>
+      <li><button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+  <span class="icon" aria-hidden="true">🌙</span>
 </button>
 </li>
     </ul>
@@ -60,9 +63,19 @@
     <h1>Checkout</h1>
   </header>
   <form id="checkout-form">
+    <div class="form-row">
+      <div>
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
+      <div>
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" required />
+      </div>
+    </div>
     <label for="email">Email Address</label>
-    <input type="email" id="email" name="email" required />
-    <button type="submit" class="btn">Send Payment Details</button>
+    <input type="email" id="email" name="email" required style="margin-bottom: 1.5rem;" />
+    <button type="submit" class="btn">Place Order & Send Email</button>
   </form>
   <div id="email-preview" class="email-preview"></div>
   <a href="/cart/" class="btn btn-ghost">Back to cart</a>
@@ -80,7 +93,6 @@
     </ul>
   </div>
 </footer>
-
 
     <script defer src="/assets/scripts/main.js"></script>
   </body>

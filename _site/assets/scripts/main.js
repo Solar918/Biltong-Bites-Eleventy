@@ -7,19 +7,18 @@
   const themeToggles = $$('.theme-toggle');
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('theme', theme); } catch {}
+    try { localStorage.setItem('theme', theme); } catch { }
     // Update toggle icons
     themeToggles.forEach(btn => {
       const icon = btn.querySelector('.icon');
       if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
     });
   }
-  // Initialize theme from saved preference or OS setting
+  // Initialize theme from saved preference or default to dark
   try {
     const stored = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    setTheme(stored || (prefersDark ? 'dark' : 'light'));
-  } catch {}
+    setTheme(stored || 'dark');
+  } catch { }
   themeToggles.forEach(btn => {
     btn.addEventListener('click', () => {
       const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -59,59 +58,39 @@
   quantityRoot?.addEventListener('change', applyFilter);
 
 
-  // Click-toggle filter dropdown menus and close on outside click
+  // Click-toggle filter dropdown menus and close on mouseleave
   $$('.filter-toggle').forEach(btn => {
     const dropdown = btn.closest('.filter-dropdown');
     btn.addEventListener('click', e => {
       e.stopPropagation();
       dropdown.classList.toggle('open');
     });
+    // Stay open until mouse leaves the whole dropdown area
+    dropdown.addEventListener('mouseleave', () => {
+      dropdown.classList.remove('open');
+    });
   });
-  document.addEventListener('click', () => {
-    $$('.filter-dropdown.open').forEach(dd => dd.classList.remove('open'));
-  });
+
+  // Mobile Nav Toggle
+  const navToggle = document.querySelector('.nav-toggle');
+  const nav = document.querySelector('.nav');
+  if (navToggle && nav) {
+    navToggle.addEventListener('click', () => {
+      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
+      navToggle.setAttribute('aria-expanded', !expanded);
+      nav.classList.toggle('is-active');
+    });
+  }
 
   // Simple prefetch on hover
   const prefetch = (url) => {
-    try { const link = Object.assign(document.createElement('link'), { rel: 'prefetch', href: url }); document.head.appendChild(link); } catch (e) {}
+    try { const link = Object.assign(document.createElement('link'), { rel: 'prefetch', href: url }); document.head.appendChild(link); } catch (e) { }
   };
-document.addEventListener('mouseover', (e) => {
-  const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
-}, { passive: true });
+  document.addEventListener('mouseover', (e) => {
+    const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
+  }, { passive: true });
 
-// Quantity selector logic on detail page
-(() => {
-  const selector = document.querySelector('.quantity-selector');
-  if (!selector) return;
-  const input = selector.querySelector('.qty-input');
-  const priceEl = document.querySelector('.price');
-  const unitPrice = parseFloat(priceEl.dataset.unitPrice);
-
-  function updatePrice(qty) {
-    priceEl.textContent = '$' + (unitPrice * qty).toFixed(2);
-  }
-
-  // initialize total
-  updatePrice(parseInt(input.value, 10));
-
-  selector.querySelector('.minus').addEventListener('click', () => {
-    const val = Math.max(1, parseInt(input.value, 10) - 1);
-    input.value = val;
-    updatePrice(val);
-  });
-  selector.querySelector('.plus').addEventListener('click', () => {
-    const val = parseInt(input.value, 10) + 1;
-    input.value = val;
-    updatePrice(val);
-  });
-  input.addEventListener('input', () => {
-    let val = parseInt(input.value, 10);
-    if (isNaN(val) || val < 1) val = 1;
-    input.value = val;
-    updatePrice(val);
-  });
-
-  // Cart logic: persist items in localStorage for 48h
+  // Cart utility functions
   function purgeExpiredCart() {
     const now = Date.now();
     const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
@@ -119,27 +98,93 @@ document.addEventListener('mouseover', (e) => {
     localStorage.setItem('biltongCart', JSON.stringify(valid));
     return valid;
   }
-  purgeExpiredCart();
 
-  const addToCartBtn = selector.querySelector('.add-to-cart');
-  addToCartBtn.addEventListener('click', () => {
-    const qty = parseInt(input.value, 10);
-    const id = window.location.pathname;
-    const title = document.querySelector('h1').textContent.trim();
-    const now = Date.now();
-    const cart = purgeExpiredCart();
-    const existing = cart.find(item => item.id === id);
-    if (existing) {
-      existing.quantity = qty;
-      existing.timestamp = now;
-      existing.price = unitPrice;
-    } else {
-      cart.push({ id, title, quantity: qty, price: unitPrice, timestamp: now });
+  function updateCartCount() {
+    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
+    const count = cart.reduce((acc, item) => acc + item.quantity, 0);
+    const badge = document.querySelector('.cart-count');
+    if (badge) {
+      badge.textContent = count > 0 ? count : '';
     }
-    localStorage.setItem('biltongCart', JSON.stringify(cart));
-    alert(qty + ' item(s) added to cart');
-  });
-})();
+  }
+  purgeExpiredCart();
+  updateCartCount();
+
+  function showAddedFeedback(btn) {
+    const originalContent = btn.innerHTML;
+    btn.innerHTML = '<span>Added!</span>';
+    btn.classList.add('added');
+    btn.disabled = true;
+
+    // Trigger a small bounce on the cart badge if it exists
+    const badge = document.querySelector('.cart-count');
+    if (badge) {
+      badge.animate([
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.3)' },
+        { transform: 'scale(1)' }
+      ], { duration: 300 });
+    }
+
+    setTimeout(() => {
+      btn.innerHTML = originalContent;
+      btn.classList.remove('added');
+      btn.disabled = false;
+    }, 1500);
+  }
+
+  // Quantity selector logic on detail page
+  (() => {
+    const selector = document.querySelector('.quantity-selector');
+    if (!selector) return;
+    const input = selector.querySelector('.qty-input');
+    const priceEl = document.querySelector('.price');
+    const unitPrice = parseFloat(priceEl.dataset.unitPrice);
+
+    function updatePrice(qty) {
+      priceEl.textContent = '$' + (unitPrice * qty).toFixed(2);
+    }
+
+    // initialize total
+    updatePrice(parseInt(input.value, 10));
+
+    selector.querySelector('.minus').addEventListener('click', () => {
+      const val = Math.max(1, parseInt(input.value, 10) - 1);
+      input.value = val;
+      updatePrice(val);
+    });
+    selector.querySelector('.plus').addEventListener('click', () => {
+      const val = parseInt(input.value, 10) + 1;
+      input.value = val;
+      updatePrice(val);
+    });
+    input.addEventListener('input', () => {
+      let val = parseInt(input.value, 10);
+      if (isNaN(val) || val < 1) val = 1;
+      input.value = val;
+      updatePrice(val);
+    });
+
+    const addToCartBtn = selector.querySelector('.add-to-cart');
+    addToCartBtn.addEventListener('click', () => {
+      const qty = parseInt(input.value, 10);
+      const id = window.location.pathname;
+      const title = document.querySelector('h1').textContent.trim();
+      const now = Date.now();
+      const cart = purgeExpiredCart();
+      const existing = cart.find(item => item.id === id);
+      if (existing) {
+        existing.quantity = qty;
+        existing.timestamp = now;
+        existing.price = unitPrice;
+      } else {
+        cart.push({ id, title, quantity: qty, price: unitPrice, timestamp: now });
+      }
+      localStorage.setItem('biltongCart', JSON.stringify(cart));
+      updateCartCount();
+      showAddedFeedback(addToCartBtn);
+    });
+  })();
 
   // Cart toggle click handler: show cart contents
   const cartToggle = document.getElementById('cart-toggle');
@@ -150,7 +195,7 @@ document.addEventListener('mouseover', (e) => {
   }
 
   // Add to cart buttons on listing pages
-  (function() {
+  (function () {
     const buttons = $$('.card-actions .add-to-cart');
     if (!buttons.length) return;
     buttons.forEach(btn => {
@@ -171,7 +216,9 @@ document.addEventListener('mouseover', (e) => {
           cart.push({ id, title, quantity: qty, price, timestamp: now });
         }
         localStorage.setItem('biltongCart', JSON.stringify(cart));
-        alert(qty + ' item(s) added to cart');
+
+        updateCartCount();
+        showAddedFeedback(btn);
       });
     });
   })();
@@ -227,6 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('biltongCart', JSON.stringify(cartData));
       li.remove();
       recalcTotal();
+      // Update global badge
+      const badge = document.querySelector('.cart-count');
+      const count = cartData.reduce((acc, item) => acc + item.quantity, 0);
+      if (badge) badge.textContent = count > 0 ? count : '';
     });
 
     // Unit price for this line
@@ -248,6 +299,10 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = q;
         priceSpan.textContent = `$${(item.price * q).toFixed(2)}`;
         recalcTotal();
+        // Update global badge
+        const badge = document.querySelector('.cart-count');
+        const count = cartData.reduce((acc, item) => acc + item.quantity, 0);
+        if (badge) badge.textContent = count > 0 ? count : '';
       }
     }
     minusBtn.addEventListener('click', () => updateLine(Math.max(1, parseInt(input.value, 10) - 1)));
@@ -280,9 +335,23 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('checkout-form');
   if (!form) return;
   const preview = document.getElementById('email-preview');
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    const rawName = form.name.value.trim();
+
+    // Split name for DB (Last First) and Email (First Last)
+    let dbName = rawName;
+    let emailName = rawName;
+    const nameParts = rawName.split(' ').filter(Boolean);
+    if (nameParts.length > 1) {
+      const last = nameParts.pop();
+      const first = nameParts.join(' ');
+      dbName = `${last} ${first}`;
+      emailName = `${first} ${last}`;
+    }
+
     const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
     let body = `Thank you for your order!\n\nPlease complete your payment to our bank account:\n\nAccount Name: Biltong Bites\nAccount Number: 12345678\nSort Code: 00-00-00\n\nOrder details:\n`;
     let total = 0;
@@ -291,7 +360,31 @@ document.addEventListener('DOMContentLoaded', () => {
       total += item.price * item.quantity;
     });
     body += `\nTotal: $${total.toFixed(2)}\n\nCheers,\nBiltong Bites Team`;
-    if (preview) preview.textContent = body;
-    window.location.href = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent('Your Biltong Bites Order Payment Details')}&body=${encodeURIComponent(body)}`;
+
+    try {
+      // Send to our new API endpoint
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name: dbName, emailName, phone, cart, total })
+      });
+      console.log('Order successfully sent to server.');
+      // Clear cart after successful order
+      localStorage.removeItem('biltongCart');
+      const badge = document.querySelector('.cart-count');
+      if (badge) badge.textContent = '';
+
+      // Show success message instead of opening mail client
+      if (preview) {
+        preview.innerHTML = `<div style="padding: 1rem; background-color: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50; margin-top: 1rem;">
+          <strong>Order successful!</strong><br>
+          We've received your order and payment details have been sent to <em>${email}</em>.
+        </div>`;
+      }
+      form.reset();
+    } catch (err) {
+      console.error('Failed to submit order to API:', err);
+      if (preview) preview.textContent = "There was an error processing your order. Please try again.";
+    }
   });
 });

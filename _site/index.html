@@ -15,6 +15,9 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:creator" content="@" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="preload" href="/assets/styles/main.css" as="style" />
     <link rel="stylesheet" href="/assets/styles/main.css" />
     <script>
@@ -22,8 +25,7 @@
       (function () {
         try {
           const stored = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const theme = stored || (prefersDark ? 'dark' : 'light');
+          const theme = stored || 'dark';
           document.documentElement.setAttribute('data-theme', theme);
           document.documentElement.classList.remove('no-js');
         } catch (_e) {}
@@ -42,10 +44,11 @@
       <li><a href="/#contact">Contact</a></li>
       <li><button id="cart-toggle" type="button" class="cart-toggle" aria-label="View cart" title="View cart">
   <span class="icon" aria-hidden="true">🛒</span>
+  <span class="cart-count"></span>
 </button>
 </li>
-      <li><button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
-  <span class="icon" aria-hidden="true">🌗</span>
+      <li><button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+  <span class="icon" aria-hidden="true">🌙</span>
 </button>
 </li>
     </ul>
@@ -57,11 +60,25 @@
       
 <section class="hero container" aria-labelledby="intro-heading">
   <div class="hero-content">
-    <h1 id="intro-heading">Hi, we're Biltong Bites.</h1>
-    <p class="lead">At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste.</p>
+    <h1 id="intro-heading">Handcrafted. Tender. <span style="color: var(--accent)">Biltong Bites.</span></h1>
+    <p class="lead">Premium, artisanal biltong made right here by young Kiwi entrepreneurs. Quality you can taste in every bite.</p>
     <div class="cta">
-      <a href="#products" class="btn">See our products</a>
-      <a href="#contact" class="btn btn-ghost">Get in touch</a>
+      <a href="#products" class="btn">Shop Our Range</a>
+      <a href="#about" class="btn btn-ghost">Our Story</a>
+    </div>
+    <div class="usp-icons">
+      <div class="usp-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>High Protein</span>
+      </div>
+      <div class="usp-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
+        <span>Handcrafted</span>
+      </div>
+      <div class="usp-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        <span>Artisanal Quality</span>
+      </div>
     </div>
   </div>
 </section>
@@ -93,7 +110,7 @@
               
                 <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
               
-                <label><input type="checkbox" value="200g" /> <span>200g</span></label>
+                <label><input type="checkbox" value="250g" /> <span>250g</span></label>
               
                 <label><input type="checkbox" value="500g" /> <span>500g</span></label>
               
@@ -116,9 +133,8 @@
   data-price="50">
   <div class="card-media">
     
-      <img loading="lazy" src="/assets/images/1000og.jpeg" alt="Original Biltong - 1kg screenshot" />
+      <img loading="lazy" src="/assets/images/1000og.jpeg" alt="Original Biltong - 1kg" />
     
-
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 1kg</h3>
@@ -139,9 +155,8 @@
   data-price="8">
   <div class="card-media">
     
-      <img loading="lazy" src="/assets/images/100og.jpeg" alt="Original Biltong - 100g screenshot" />
+      <img loading="lazy" src="/assets/images/100og.jpeg" alt="Original Biltong - 100g" />
     
-
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 100g</h3>
@@ -158,13 +173,12 @@
   data-title="original biltong - 250g"
   data-desc="just the right size for a quick, delicious treat on the go."
   data-flavour="original"
-  data-quantity="200g"
+  data-quantity="250g"
   data-price="15">
   <div class="card-media">
     
-      <img loading="lazy" src="/assets/images/250og.jpeg" alt="Original Biltong - 250g screenshot" />
+      <img loading="lazy" src="/assets/images/250og.jpeg" alt="Original Biltong - 250g" />
     
-
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 250g</h3>
@@ -185,9 +199,8 @@
   data-price="25">
   <div class="card-media">
     
-      <img loading="lazy" src="/assets/images/500og.jpeg" alt="Original Biltong - 500g screenshot" />
+      <img loading="lazy" src="/assets/images/500og.jpeg" alt="Original Biltong - 500g" />
     
-
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 500g</h3>
@@ -208,9 +221,8 @@
   data-price="5">
   <div class="card-media">
     
-      <img loading="lazy" src="/assets/images/50og.jpeg" alt="Original Biltong - 50g screenshot" />
+      <img loading="lazy" src="/assets/images/50og.jpeg" alt="Original Biltong - 50g" />
     
-
   </div>
   <div class="card-body">
     <h3 class="card-title">Original Biltong - 50g</h3>
@@ -262,7 +274,6 @@
     </ul>
   </div>
 </footer>
-
 
     <script defer src="/assets/scripts/main.js"></script>
   </body>

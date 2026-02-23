@@ -6,11 +6,10 @@
   data-price="{{ product.data.price or '' }}">
   <div class="card-media">
     {% if product.data.image %}
-      <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }} screenshot" />
+      <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }}" />
     {% else %}
-      <div class="placeholder" aria-hidden="true"></div>
+      <img loading="lazy" src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80&w=800" alt="Beef Jerky / Biltong" />
     {% endif %}
-
   </div>
   <div class="card-body">
     <h3 class="card-title">{{ product.data.title }}</h3>

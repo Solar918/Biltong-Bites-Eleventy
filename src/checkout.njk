@@ -1,7 +1,7 @@
 ---
 layout: layouts/base.njk
 title: Checkout
-description: Enter your email to receive payment details
+description: Enter your details to receive an order confirmation email
 ---
 
 <article class="container checkout-page">
@@ -9,9 +9,19 @@ description: Enter your email to receive payment details
     <h1>Checkout</h1>
   </header>
   <form id="checkout-form">
+    <div class="form-row">
+      <div>
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required />
+      </div>
+      <div>
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" required />
+      </div>
+    </div>
     <label for="email">Email Address</label>
-    <input type="email" id="email" name="email" required />
-    <button type="submit" class="btn">Send Payment Details</button>
+    <input type="email" id="email" name="email" required style="margin-bottom: 1.5rem;" />
+    <button type="submit" class="btn">Place Order & Send Email</button>
   </form>
   <div id="email-preview" class="email-preview"></div>
   <a href="/cart/" class="btn btn-ghost">Back to cart</a>
