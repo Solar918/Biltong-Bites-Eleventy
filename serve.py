@@ -11,6 +11,7 @@ import os
 import sqlite3
 import json
 import smtplib
+import base64
 from email.message import EmailMessage
 from datetime import datetime
 
@@ -31,15 +32,34 @@ if os.path.exists(ENV_PATH):
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    # Back up old orders table if it exists
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='orders'")
+    if cursor.fetchone():
+        try:
+            cursor.execute("ALTER TABLE orders RENAME TO old_orders")
+        except sqlite3.OperationalError:
+            pass # old_orders might already exist
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS customers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS orders (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            email TEXT NOT NULL,
+            customer_id INTEGER NOT NULL,
             cart TEXT NOT NULL,
             total REAL NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            status TEXT DEFAULT 'Pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(customer_id) REFERENCES customers(id)
         )
     ''')
     conn.commit()
@@ -49,7 +69,268 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
+    def check_auth(self):
+        auth_header = self.headers.get('Authorization')
+        if auth_header:
+            auth_type, encoded = auth_header.split(' ', 1)
+            if auth_type.lower() == 'basic':
+                try:
+                    decoded = base64.b64decode(encoded).decode('utf-8')
+                    username, password = decoded.split(':', 1)
+                    admin_user = os.environ.get('ADMIN_USERNAME')
+                    admin_pass = os.environ.get('ADMIN_PASSWORD')
+                    if admin_user and admin_pass and username == admin_user and password == admin_pass:
+                        return True
+                except Exception:
+                    pass
+        
+        self.send_response(401)
+        self.send_header('WWW-Authenticate', 'Basic realm="Admin Access"')
+        self.end_headers()
+        self.wfile.write(b"Unauthorized access")
+        return False
+
+    def do_GET(self):
+        # Protect admin page
+        if self.path.startswith('/admin') or self.path.startswith('/api/admin'):
+            if not self.check_auth():
+                return
+                
+        if self.path == '/api/admin/data':
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                
+                cursor.execute('SELECT * FROM customers ORDER BY id ASC')
+                customers = [dict(row) for row in cursor.fetchall()]
+                
+                cursor.execute('''
+                    SELECT orders.*, customers.name as customer_name, customers.email as customer_email, customers.phone as customer_phone
+                    FROM orders 
+                    JOIN customers ON orders.customer_id = customers.id 
+                    ORDER BY orders.id ASC
+                ''')
+                orders = []
+                for row in cursor.fetchall():
+                    order_dict = dict(row)
+                    order_dict['cart'] = json.loads(order_dict['cart'])
+                    orders.append(order_dict)
+                    
+                conn.close()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'customers': customers, 'orders': orders}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            return
+
+        super().do_GET()
+
+    def do_DELETE(self):
+        if self.path.startswith('/api/admin'):
+            if not self.check_auth():
+                return
+            if self.path.startswith('/api/admin/orders/'):
+                try:
+                    order_id = self.path.split('/')[-1]
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute('DELETE FROM orders WHERE id = ?', (order_id,))
+                    conn.commit()
+                    conn.close()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            elif self.path.startswith('/api/admin/customers/'):
+                try:
+                    customer_id = self.path.split('/')[-1]
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    # Delete associated orders first to avoid foreign key constraints
+                    cursor.execute('DELETE FROM orders WHERE customer_id = ?', (customer_id,))
+                    # Delete the customer
+                    cursor.execute('DELETE FROM customers WHERE id = ?', (customer_id,))
+                    conn.commit()
+                    conn.close()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            elif self.path == '/api/admin/reset_orders':
+                try:
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute('DELETE FROM orders')
+                    cursor.execute("DELETE FROM sqlite_sequence WHERE name='orders'")
+                    conn.commit()
+                    conn.close()
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            return
+
     def do_POST(self):
+        if self.path.startswith('/api/admin'):
+            if not self.check_auth():
+                return
+            if self.path.startswith('/api/admin/orders/') and self.path.endswith('/complete'):
+                try:
+                    order_id = self.path.split('/')[-2]
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute('UPDATE orders SET status = "Completed" WHERE id = ?', (order_id,))
+                    
+                    cursor.execute('''
+                        SELECT orders.cart, orders.total, customers.name, customers.email 
+                        FROM orders JOIN customers ON orders.customer_id = customers.id 
+                        WHERE orders.id = ?
+                    ''', (order_id,))
+                    order_data = cursor.fetchone()
+                    conn.commit()
+                    conn.close()
+                    
+                    if order_data:
+                        # Send completion email logic
+                        cart_data, total_amount, cust_name, cust_email = order_data
+                        
+                        smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+                        smtp_port = int(os.environ.get("SMTP_PORT", 587))
+                        sender_email = os.environ.get("SENDER_EMAIL")
+                        sender_password = os.environ.get("SENDER_PASSWORD")
+                        
+                        if sender_email and sender_password:
+                            msg = EmailMessage()
+                            msg['Subject'] = f'Order #{order_id} Completed - Biltong Bites !'
+                            msg['From'] = sender_email
+                            msg['To'] = cust_email
+                            
+                            template_path = os.path.join(HERE, "order_complete_template.md")
+                            if os.path.exists(template_path):
+                                with open(template_path, 'r', encoding='utf-8') as f:
+                                    template_content = f.read()
+                            else:
+                                template_content = "Order #{order_id} is complete!"
+                                
+                            # Convert DB Name (Last First) to Email Name (First Last)
+                            email_name = cust_name
+                            name_parts = cust_name.split(' ')
+                            if len(name_parts) > 1:
+                                last = name_parts[0]
+                                first = ' '.join(name_parts[1:])
+                                email_name = f"{first} {last}"
+                                
+                            # Format order items for the email
+                            cart_list = json.loads(cart_data)
+                            order_items_text = ""
+                            for item in cart_list:
+                                order_items_text += f"{item.get('title', 'Item')} x {item.get('quantity', 1)}, "
+                            order_items_text = order_items_text.rstrip(', ')
+                                
+                            # Replace environment variables specifically for this template as well
+                            body = template_content.replace('[ACCOUNT_NUMBER]', os.environ.get('ACCOUNT_NUMBER', '12345678'))
+                            body = body.replace('[PHONE_NUMBER]', os.environ.get('PHONE_NUMBER', '021 000 0000'))
+                                
+                            body = body.replace('{Customer Name}', email_name).replace('{order_id}', str(order_id)).replace('{order_items}', order_items_text)
+                            
+                            msg.set_content(body)
+                            
+                            import re
+                            html_body = body
+                            html_body = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_body)
+                            html_body = re.sub(r'^### (.*)', r'<h3>\1</h3>', html_body, flags=re.MULTILINE)
+                            html_body = html_body.replace('\n\n', '<br><br>').replace('\n', '<br>')
+                            html_body = f"<html><body style='font-family: sans-serif;'>\n{html_body}\n</body></html>"
+                            
+                            msg.add_alternative(html_body, subtype='html')
+                            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                                server.starttls()
+                                server.login(sender_email, sender_password)
+                                server.send_message(msg)
+                                
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+                except Exception as e:
+                    self.send_response(500)
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            return
+            
+        if self.path == '/api/contact':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                name = data.get('name', 'Anonymous')
+                email = data.get('email', 'No Email')
+                message = data.get('message', '')
+                
+                smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+                smtp_port = int(os.environ.get("SMTP_PORT", 587))
+                sender_email = os.environ.get("SENDER_EMAIL")
+                sender_password = os.environ.get("SENDER_PASSWORD")
+                
+                if sender_email and sender_password:
+                    msg = EmailMessage()
+                    msg['Subject'] = f'New Contact Form Message from {name}'
+                    msg['From'] = sender_email
+                    msg['To'] = sender_email
+                    msg['Reply-To'] = email
+                    
+                    template_path = os.path.join(HERE, "contact_template.md")
+                    if os.path.exists(template_path):
+                        with open(template_path, 'r', encoding='utf-8') as f:
+                            template_content = f.read()
+                    else:
+                        template_content = "Name: {contact_name}\nEmail: {contact_email}\nMessage:\n{contact_message}"
+                        
+                    body = template_content.replace('{contact_name}', name).replace('{contact_email}', email).replace('{contact_message}', message)
+                    
+                    msg.set_content(body)
+                    
+                    import re
+                    html_body = body
+                    html_body = re.sub(r'\*\*(.*?)\*\*', r'<strong>\1</strong>', html_body)
+                    html_body = re.sub(r'^### (.*)', r'<h3>\1</h3>', html_body, flags=re.MULTILINE)
+                    html_body = html_body.replace('\n\n', '<br><br>').replace('\n', '<br>')
+                    html_body = f"<html><body style='font-family: sans-serif;'>\n{html_body}\n</body></html>"
+                    
+                    msg.add_alternative(html_body, subtype='html')
+                    with smtplib.SMTP(smtp_server, smtp_port) as server:
+                        server.starttls()
+                        server.login(sender_email, sender_password)
+                        server.send_message(msg)
+                        
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'success'}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(json.dumps({'error': str(e)}).encode('utf-8'))
+            return
+
         if self.path == '/api/orders':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
@@ -63,12 +344,30 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 cart = data.get('cart', [])
                 total = data.get('total', 0.0)
                 
-                # Insert into DB
+                # Manage Customer Deduplication
                 conn = sqlite3.connect(DB_PATH)
                 cursor = conn.cursor()
+                
+                # Check if customer exists
+                cursor.execute('SELECT id FROM customers WHERE email = ?', (email,))
+                customer = cursor.fetchone()
+                
+                if customer:
+                    customer_id = customer[0]
+                    # Optionally update their name/phone if they provided new ones
+                    cursor.execute('UPDATE customers SET name = ?, phone = ? WHERE id = ?', (name, phone, customer_id))
+                else:
+                    # Insert new customer
+                    cursor.execute(
+                        'INSERT INTO customers (email, name, phone, created_at) VALUES (?, ?, ?, ?)',
+                        (email, name, phone, datetime.now())
+                    )
+                    customer_id = cursor.lastrowid
+                
+                # Insert order linked to the customer_id
                 cursor.execute(
-                    'INSERT INTO orders (name, phone, email, cart, total, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-                    (name, phone, email, json.dumps(cart), total, datetime.now())
+                    'INSERT INTO orders (customer_id, cart, total, status, created_at) VALUES (?, ?, ?, ?, ?)',
+                    (customer_id, json.dumps(cart), total, 'Pending', datetime.now())
                 )
                 order_id = cursor.lastrowid
                 conn.commit()

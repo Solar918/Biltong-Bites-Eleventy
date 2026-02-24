@@ -388,3 +388,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// Contact form submission
+document.addEventListener('DOMContentLoaded', () => {
+  const contactForm = document.getElementById('contact-form');
+  if (!contactForm) return;
+  const resultDiv = document.getElementById('contact-result');
+
+  contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = "Sending...";
+    submitBtn.disabled = true;
+
+    const name = contactForm.name.value.trim();
+    const email = contactForm.email.value.trim();
+    const message = contactForm.message.value.trim();
+
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, message })
+      });
+
+      if (res.ok) {
+        resultDiv.innerHTML = `<div style="padding: 1rem; background-color: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50;">
+          <strong>Message Sent!</strong><br>
+          Thank you for reaching out. We will get back to you shortly.
+        </div>`;
+        contactForm.reset();
+      } else {
+        const err = await res.json();
+        resultDiv.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red; border-radius: 4px;">Failed to send: ${err.error || 'Unknown error'}</div>`;
+      }
+    } catch (err) {
+      resultDiv.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red; border-radius: 4px;">An error occurred. Please try again.</div>`;
+    } finally {
+      submitBtn.innerText = originalText;
+      submitBtn.disabled = false;
+    }
+  });
+});

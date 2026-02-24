@@ -9,7 +9,7 @@
     <meta property="og:title" content="Biltong Bites" />
     <meta property="og:description" content="At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://biltongbites.koines.org/checkout/" />
+    <meta property="og:url" content="https://biltongbites.koines.org/admin/" />
     <meta property="og:image" content="https://biltongbites.koines.org/assets/images/placeholder.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -58,28 +58,50 @@
 
     <main id="main" tabindex="-1">
       
-<article class="container checkout-page">
-  <header>
-    <h1>Checkout</h1>
-  </header>
-  <form id="checkout-form">
-    <div class="form-row">
-      <div>
-        <label for="name">First and Last Name</label>
-        <input type="text" id="name" name="name" required />
-      </div>
-      <div>
-        <label for="phone">Phone Number</label>
-        <input type="tel" id="phone" name="phone" required />
-      </div>
+<article class="container admin-page">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Admin Dashboard</h1>
+    <div class="view-controls" style="display: flex; gap: 0.5rem; align-items: center;">
+      <button class="btn btn-ghost" id="view-orders">Orders Only</button>
+      <button class="btn btn-ghost" id="view-customers">Customers Only</button>
+      <button class="btn" id="view-combined">Combined View</button>
+      <button class="btn btn-ghost" id="reset-orders-btn" style="color: #ff4444; border-color: #ff4444; margin-left: 1rem;">Reset All Orders</button>
     </div>
-    <label for="email">Email Address</label>
-    <input type="email" id="email" name="email" required style="margin-bottom: 1.5rem;" />
-    <button type="submit" class="btn">Place Order & Send Email</button>
-  </form>
-  <div id="email-preview" class="email-preview"></div>
-  <a href="/cart/" class="btn btn-ghost">Back to cart</a>
+  </header>
+
+  <div class="filters" style="display: flex; gap: 1rem; margin-bottom: 2rem; background: var(--surface); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+    <div style="flex: 1;">
+      <label for="filter-customer" style="display: block; font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Filter by Customer</label>
+      <select id="filter-customer" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius);">
+        <option value="">All Customers</option>
+      </select>
+    </div>
+    <div style="flex: 1;">
+      <label for="filter-product" style="display: block; font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Filter by Product</label>
+      <select id="filter-product" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius);">
+        <option value="">All Products</option>
+        
+        <option value="original biltong - 1kg">Original Biltong - 1kg</option>
+        
+        <option value="original biltong - 100g">Original Biltong - 100g</option>
+        
+        <option value="original biltong - 250g">Original Biltong - 250g</option>
+        
+        <option value="original biltong - 500g">Original Biltong - 500g</option>
+        
+        <option value="original biltong - 50g">Original Biltong - 50g</option>
+        
+      </select>
+    </div>
+  </div>
+
+  <div id="admin-content" style="overflow-x: auto;">
+    <!-- Rendered via JavaScript -->
+    <p>Loading dashboard data...</p>
+  </div>
 </article>
+
+<script src="/assets/scripts/admin.js"></script>
 
     </main>
 

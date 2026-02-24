@@ -1,0 +1,42 @@
+---
+layout: layouts/base.njk
+title: Admin Dashboard
+description: Manage Biltong Bites Customers and Orders
+---
+
+<article class="container admin-page">
+  <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>Admin Dashboard</h1>
+    <div class="view-controls" style="display: flex; gap: 0.5rem; align-items: center;">
+      <button class="btn btn-ghost" id="view-orders">Orders Only</button>
+      <button class="btn btn-ghost" id="view-customers">Customers Only</button>
+      <button class="btn" id="view-combined">Combined View</button>
+      <button class="btn btn-ghost" id="reset-orders-btn" style="color: #ff4444; border-color: #ff4444; margin-left: 1rem;">Reset All Orders</button>
+    </div>
+  </header>
+
+  <div class="filters" style="display: flex; gap: 1rem; margin-bottom: 2rem; background: var(--surface); padding: 1rem; border-radius: var(--radius); border: 1px solid var(--border);">
+    <div style="flex: 1;">
+      <label for="filter-customer" style="display: block; font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Filter by Customer</label>
+      <select id="filter-customer" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius);">
+        <option value="">All Customers</option>
+      </select>
+    </div>
+    <div style="flex: 1;">
+      <label for="filter-product" style="display: block; font-size: 0.875rem; color: var(--muted); margin-bottom: 0.5rem;">Filter by Product</label>
+      <select id="filter-product" style="width: 100%; padding: 0.5rem; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius);">
+        <option value="">All Products</option>
+        {% for product in collections.products %}
+        <option value="{{ product.data.title | lower }}">{{ product.data.title }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div id="admin-content" style="overflow-x: auto;">
+    <!-- Rendered via JavaScript -->
+    <p>Loading dashboard data...</p>
+  </div>
+</article>
+
+<script src="/assets/scripts/admin.js"></script>
