@@ -1,4 +1,16 @@
+# Dependencies
 node_modules/
-node_modules/
-node_modules/
+
+# Environment Variables & Secrets
 .env
+
+# Database & Temporary Files
+orders.db
+orders.db-journal
+*.sqlite3
+__pycache__/
+*.pyc
+
+# Operating System Files
+.DS_Store
+Thumbs.db

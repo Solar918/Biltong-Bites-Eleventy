@@ -1,433 +1,664 @@
+/**
+ * Biltong Bites - Frontend Client Controller
+ * ===========================================
+ * Handles:
+ * - Theme toggling (light / dark mode) with system preference persistence
+ * - Product listing search & multi-category tag filtering
+ * - Cart lifecycle management (localStorage persistence with 48h TTL)
+ * - Detail page dynamic price scaling and cart integration
+ * - Shopping cart page rendering with live quantity controls and instant recalculation
+ * - Checkout validation, empty-cart guard, and order submission to `/api/orders`
+ * - Contact form submissions with async feedback to `/api/contact`
+ * - Toast notification banner system
+ */
+
 (function () {
+  'use strict';
+
+  // Helper DOM selectors
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+  // ==========================================================================
+  // Toast Notification System
+  // ==========================================================================
+  function showToast(message, type = 'success', duration = 3000) {
+    let toastContainer = $('#toast-container');
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.id = 'toast-container';
+      toastContainer.className = 'toast-container';
+      document.body.appendChild(toastContainer);
+    }
 
-  // Theme toggle
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+      <span class="toast-icon">${type === 'success' ? '✓' : '⚠️'}</span>
+      <span class="toast-message">${message}</span>
+    `;
+
+    toastContainer.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.classList.add('toast-show');
+    });
+
+    setTimeout(() => {
+      toast.classList.remove('toast-show');
+      setTimeout(() => toast.remove(), 300);
+    }, duration);
+  }
+
+  // ==========================================================================
+  // Theme Toggle Management
+  // ==========================================================================
   const themeToggles = $$('.theme-toggle');
+
   function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem('theme', theme); } catch { }
-    // Update toggle icons
+    try {
+      localStorage.setItem('theme', theme);
+    } catch (_e) {}
+
     themeToggles.forEach(btn => {
       const icon = btn.querySelector('.icon');
       if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
     });
   }
+
   // Initialize theme from saved preference or default to dark
   try {
-    const stored = localStorage.getItem('theme');
-    setTheme(stored || 'dark');
-  } catch { }
+    const savedTheme = localStorage.getItem('theme');
+    setTheme(savedTheme || 'dark');
+  } catch (_e) {}
+
   themeToggles.forEach(btn => {
     btn.addEventListener('click', () => {
-      const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
       setTheme(next);
     });
   });
 
-  // Footer year
+  // Dynamic copyright year
   const yearEl = document.querySelector('[data-year]');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  // Intersection animation
-  const products = $$('#product-grid .product');
-  const io = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) e.target.classList.add('in-view');
-  }, { rootMargin: '0px 0px -10% 0px' }) : null;
-  products.forEach((card) => io?.observe(card));
-
-  // Search + filters
-  const searchInput = $('#product-search');
-  const flavourRoot = $('#flavour-filters');
-  const quantityRoot = $('#quantity-filters');
-  function applyFilter() {
-    const q = (searchInput?.value || '').trim().toLowerCase();
-    const flavourActives = $$('#flavour-filters input:checked').map((i) => i.value);
-    const quantityActives = $$('#quantity-filters input:checked').map((i) => i.value);
-    products.forEach((el) => {
-      const hay = `${el.dataset.title} ${el.dataset.desc} ${el.dataset.flavour}`;
-      const matchesQuery = !q || hay.includes(q);
-      const matchesFlavour = !flavourActives.length || flavourActives.every((f) => el.dataset.flavour.includes(f));
-      const matchesQuantity = !quantityActives.length || quantityActives.every((qv) => el.dataset.quantity.includes(qv));
-      el.style.display = matchesQuery && matchesFlavour && matchesQuantity ? '' : 'none';
-    });
-  }
-  searchInput?.addEventListener('input', applyFilter);
-  flavourRoot?.addEventListener('change', applyFilter);
-  quantityRoot?.addEventListener('change', applyFilter);
-
-
-  // Click-toggle filter dropdown menus and close on mouseleave
-  $$('.filter-toggle').forEach(btn => {
-    const dropdown = btn.closest('.filter-dropdown');
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      dropdown.classList.toggle('open');
-    });
-    // Stay open until mouse leaves the whole dropdown area
-    dropdown.addEventListener('mouseleave', () => {
-      dropdown.classList.remove('open');
-    });
-  });
-
-  // Mobile Nav Toggle
+  // ==========================================================================
+  // Mobile Navigation Menu Toggle
+  // ==========================================================================
   const navToggle = document.querySelector('.nav-toggle');
   const nav = document.querySelector('.nav');
+
   if (navToggle && nav) {
     navToggle.addEventListener('click', () => {
       const expanded = navToggle.getAttribute('aria-expanded') === 'true';
       navToggle.setAttribute('aria-expanded', !expanded);
       nav.classList.toggle('is-active');
     });
+
+    // Close mobile nav when clicking any nav link
+    $$('.menu a').forEach(link => {
+      link.addEventListener('click', () => {
+        nav.classList.remove('is-active');
+        navToggle.setAttribute('aria-expanded', 'false');
+      });
+    });
   }
 
-  // Simple prefetch on hover
-  const prefetch = (url) => {
-    try { const link = Object.assign(document.createElement('link'), { rel: 'prefetch', href: url }); document.head.appendChild(link); } catch (e) { }
-  };
-  document.addEventListener('mouseover', (e) => {
-    const a = e.target.closest('a[href^="http"]'); if (a) prefetch(a.href);
-  }, { passive: true });
+  // ==========================================================================
+  // Product Search & Filter Dropdown
+  // ==========================================================================
+  const products = $$('#product-grid .product');
+  const searchInput = $('#product-search');
+  const flavourRoot = $('#flavour-filters');
+  const quantityRoot = $('#quantity-filters');
+  const filterBtn = $('#filter-btn');
+  const emptyState = $('#no-products-message');
+  const clearFiltersBtn = $('#clear-filters-btn');
 
-  // Cart utility functions
-  function purgeExpiredCart() {
-    const now = Date.now();
-    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-    const valid = cart.filter(item => item.timestamp + 48 * 60 * 60 * 1000 > now);
-    localStorage.setItem('biltongCart', JSON.stringify(valid));
-    return valid;
+  function applyFilters() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    const activeFlavours = $$('#flavour-filters input:checked').map(i => i.value);
+    const activeQuantities = $$('#quantity-filters input:checked').map(i => i.value);
+
+    let matchCount = 0;
+
+    products.forEach(el => {
+      const title = el.dataset.title || '';
+      const desc = el.dataset.desc || '';
+      const flavour = el.dataset.flavour || '';
+      const quantity = el.dataset.quantity || '';
+
+      const hay = `${title} ${desc} ${flavour} ${quantity}`.toLowerCase();
+      const matchesSearch = !q || hay.includes(q);
+      const matchesFlavour = !activeFlavours.length || activeFlavours.some(f => flavour.includes(f));
+      const matchesQuantity = !activeQuantities.length || activeQuantities.some(qv => quantity.includes(qv));
+
+      const isVisible = matchesSearch && matchesFlavour && matchesQuantity;
+      el.style.display = isVisible ? '' : 'none';
+      if (isVisible) matchCount++;
+    });
+
+    if (emptyState) {
+      emptyState.style.display = matchCount === 0 ? 'block' : 'none';
+    }
   }
 
-  function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-    const count = cart.reduce((acc, item) => acc + item.quantity, 0);
+  searchInput?.addEventListener('input', applyFilters);
+  flavourRoot?.addEventListener('change', applyFilters);
+  quantityRoot?.addEventListener('change', applyFilters);
+
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      $$('#flavour-filters input:checked').forEach(i => (i.checked = false));
+      $$('#quantity-filters input:checked').forEach(i => (i.checked = false));
+      applyFilters();
+    });
+  }
+
+  // Filter dropdown toggle & outside click handling
+  if (filterBtn) {
+    const dropdown = filterBtn.closest('.filter-dropdown');
+    filterBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      const isOpen = dropdown.classList.toggle('open');
+      filterBtn.setAttribute('aria-expanded', isOpen);
+    });
+
+    document.addEventListener('click', e => {
+      if (!dropdown.contains(e.target)) {
+        dropdown.classList.remove('open');
+        filterBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        filterBtn.setAttribute('aria-expanded', 'false');
+        filterBtn.focus();
+      }
+    });
+  }
+
+  // Intersection Observer for staggered card entrance
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver((entries, obs) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in-view');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -50px 0px', threshold: 0.1 });
+
+    products.forEach(card => observer.observe(card));
+  } else {
+    products.forEach(card => card.classList.add('in-view'));
+  }
+
+  // ==========================================================================
+  // Cart Utilities & Storage Management
+  // ==========================================================================
+  const CART_KEY = 'biltongCart';
+  const CART_TTL = 48 * 60 * 60 * 1000; // 48 hours
+
+  function getCart() {
+    try {
+      const now = Date.now();
+      const raw = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+      const valid = raw.filter(item => item && item.timestamp && (item.timestamp + CART_TTL > now));
+      if (valid.length !== raw.length) {
+        localStorage.setItem(CART_KEY, JSON.stringify(valid));
+      }
+      return valid;
+    } catch (_e) {
+      return [];
+    }
+  }
+
+  function saveCart(cart) {
+    try {
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      updateCartBadge();
+    } catch (_e) {}
+  }
+
+  function updateCartBadge() {
+    const cart = getCart();
+    const count = cart.reduce((acc, item) => acc + (item.quantity || 0), 0);
     const badge = document.querySelector('.cart-count');
     if (badge) {
       badge.textContent = count > 0 ? count : '';
+      if (count > 0) {
+        badge.animate([
+          { transform: 'scale(1)' },
+          { transform: 'scale(1.3)' },
+          { transform: 'scale(1)' }
+        ], { duration: 250 });
+      }
     }
   }
-  purgeExpiredCart();
-  updateCartCount();
 
-  function showAddedFeedback(btn) {
-    const originalContent = btn.innerHTML;
-    btn.innerHTML = '<span>Added!</span>';
+  // Run on startup
+  updateCartBadge();
+
+  // Button feedback effect
+  function triggerButtonFeedback(btn, feedbackText = 'Added!') {
+    const originalText = btn.textContent;
+    btn.textContent = `✓ ${feedbackText}`;
     btn.classList.add('added');
     btn.disabled = true;
 
-    // Trigger a small bounce on the cart badge if it exists
-    const badge = document.querySelector('.cart-count');
-    if (badge) {
-      badge.animate([
-        { transform: 'scale(1)' },
-        { transform: 'scale(1.3)' },
-        { transform: 'scale(1)' }
-      ], { duration: 300 });
-    }
-
     setTimeout(() => {
-      btn.innerHTML = originalContent;
+      btn.textContent = originalText;
       btn.classList.remove('added');
       btn.disabled = false;
-    }, 1500);
+    }, 1400);
   }
 
-  // Quantity selector logic on detail page
-  (() => {
-    const selector = document.querySelector('.quantity-selector');
-    if (!selector) return;
-    const input = selector.querySelector('.qty-input');
-    const priceEl = document.querySelector('.price');
-    const unitPrice = parseFloat(priceEl.dataset.unitPrice);
-
-    function updatePrice(qty) {
-      priceEl.textContent = '$' + (unitPrice * qty).toFixed(2);
-    }
-
-    // initialize total
-    updatePrice(parseInt(input.value, 10));
-
-    selector.querySelector('.minus').addEventListener('click', () => {
-      const val = Math.max(1, parseInt(input.value, 10) - 1);
-      input.value = val;
-      updatePrice(val);
-    });
-    selector.querySelector('.plus').addEventListener('click', () => {
-      const val = parseInt(input.value, 10) + 1;
-      input.value = val;
-      updatePrice(val);
-    });
-    input.addEventListener('input', () => {
-      let val = parseInt(input.value, 10);
-      if (isNaN(val) || val < 1) val = 1;
-      input.value = val;
-      updatePrice(val);
-    });
-
-    const addToCartBtn = selector.querySelector('.add-to-cart');
-    addToCartBtn.addEventListener('click', () => {
-      const qty = parseInt(input.value, 10);
-      const id = window.location.pathname;
-      const title = document.querySelector('h1').textContent.trim();
+  // Add-to-cart on catalog cards
+  $$('.card-actions .add-to-cart').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const title = btn.dataset.title;
+      const price = parseFloat(btn.dataset.price) || 0;
       const now = Date.now();
-      const cart = purgeExpiredCart();
+
+      const cart = getCart();
       const existing = cart.find(item => item.id === id);
       if (existing) {
-        existing.quantity = qty;
+        existing.quantity += 1;
+        existing.timestamp = now;
+        existing.price = price;
+      } else {
+        cart.push({ id, title, quantity: 1, price, timestamp: now });
+      }
+
+      saveCart(cart);
+      triggerButtonFeedback(btn);
+      showToast(`Added 1x ${title} to your cart.`);
+    });
+  });
+
+  // ==========================================================================
+  // Product Detail Page Quantity Selector
+  // ==========================================================================
+  (function initProductDetailPage() {
+    const detailBox = document.querySelector('.product-detail');
+    if (!detailBox) return;
+
+    const qtyInput = detailBox.querySelector('.qty-input');
+    const priceEl = detailBox.querySelector('.price');
+    const minusBtn = detailBox.querySelector('.minus');
+    const plusBtn = detailBox.querySelector('.plus');
+    const addBtn = detailBox.querySelector('.add-to-cart');
+
+    if (!priceEl || !qtyInput) return;
+
+    const unitPrice = parseFloat(priceEl.dataset.unitPrice) || 0;
+
+    function refreshPrice() {
+      let qty = parseInt(qtyInput.value, 10);
+      if (isNaN(qty) || qty < 1) qty = 1;
+      qtyInput.value = qty;
+      priceEl.textContent = `$${(unitPrice * qty).toFixed(2)}`;
+    }
+
+    minusBtn?.addEventListener('click', () => {
+      const current = parseInt(qtyInput.value, 10) || 1;
+      if (current > 1) {
+        qtyInput.value = current - 1;
+        refreshPrice();
+      }
+    });
+
+    plusBtn?.addEventListener('click', () => {
+      const current = parseInt(qtyInput.value, 10) || 1;
+      qtyInput.value = current + 1;
+      refreshPrice();
+    });
+
+    qtyInput.addEventListener('change', refreshPrice);
+
+    addBtn?.addEventListener('click', () => {
+      const qty = parseInt(qtyInput.value, 10) || 1;
+      const id = addBtn.dataset.id || window.location.pathname;
+      const title = addBtn.dataset.title || detailBox.querySelector('.detail-title')?.textContent.trim() || 'Biltong Pack';
+      const now = Date.now();
+
+      const cart = getCart();
+      const existing = cart.find(item => item.id === id);
+      if (existing) {
+        existing.quantity += qty;
         existing.timestamp = now;
         existing.price = unitPrice;
       } else {
         cart.push({ id, title, quantity: qty, price: unitPrice, timestamp: now });
       }
-      localStorage.setItem('biltongCart', JSON.stringify(cart));
-      updateCartCount();
-      showAddedFeedback(addToCartBtn);
+
+      saveCart(cart);
+      triggerButtonFeedback(addBtn);
+      showToast(`Added ${qty}x ${title} to your cart.`);
     });
   })();
 
-  // Cart toggle click handler: show cart contents
-  const cartToggle = document.getElementById('cart-toggle');
-  if (cartToggle) {
-    cartToggle.addEventListener('click', () => {
+  // Cart toggle in header redirects to /cart/
+  const cartToggleBtn = document.getElementById('cart-toggle');
+  if (cartToggleBtn) {
+    cartToggleBtn.addEventListener('click', () => {
       window.location.href = '/cart/';
     });
   }
 
-  // Add to cart buttons on listing pages
-  (function () {
-    const buttons = $$('.card-actions .add-to-cart');
-    if (!buttons.length) return;
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const id = btn.dataset.id;
-        const title = btn.dataset.title;
-        const price = parseFloat(btn.dataset.price);
-        const qty = 1;
-        const now = Date.now();
-        let cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-        cart = cart.filter(item => item.timestamp + 48 * 60 * 60 * 1000 > now);
-        const existing = cart.find(item => item.id === id);
-        if (existing) {
-          existing.quantity += qty;
-          existing.timestamp = now;
-          existing.price = price;
-        } else {
-          cart.push({ id, title, quantity: qty, price, timestamp: now });
-        }
-        localStorage.setItem('biltongCart', JSON.stringify(cart));
+  // ==========================================================================
+  // Cart Page Dynamic View & Quantity Editor
+  // ==========================================================================
+  (function initCartPage() {
+    const container = document.getElementById('cart-contents');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (!container) return;
 
-        updateCartCount();
-        showAddedFeedback(btn);
+    function renderCartPage() {
+      const cart = getCart();
+      container.innerHTML = '';
+
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="empty-cart-state">
+            <p class="empty-cart-text">Your shopping cart is currently empty.</p>
+            <p><a href="/#products" class="btn">Explore Products</a></p>
+          </div>
+        `;
+        if (checkoutBtn) {
+          checkoutBtn.classList.add('disabled');
+          checkoutBtn.setAttribute('aria-disabled', 'true');
+          checkoutBtn.style.pointerEvents = 'none';
+          checkoutBtn.style.opacity = '0.5';
+        }
+        return;
+      }
+
+      if (checkoutBtn) {
+        checkoutBtn.classList.remove('disabled');
+        checkoutBtn.removeAttribute('aria-disabled');
+        checkoutBtn.style.pointerEvents = '';
+        checkoutBtn.style.opacity = '1';
+      }
+
+      const list = document.createElement('div');
+      list.className = 'cart-items-list';
+
+      let total = 0;
+
+      cart.forEach(item => {
+        const itemSubtotal = (item.price || 0) * item.quantity;
+        total += itemSubtotal;
+
+        const row = document.createElement('div');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+          <div class="cart-col-product">
+            <strong>${item.title}</strong>
+          </div>
+          <div class="cart-col-price">
+            $${(item.price || 0).toFixed(2)}
+          </div>
+          <div class="cart-col-qty">
+            <div class="quantity-selector-sm">
+              <button type="button" class="btn-qty minus" aria-label="Decrease quantity">−</button>
+              <input type="number" class="input-qty" value="${item.quantity}" min="1" max="99" />
+              <button type="button" class="btn-qty plus" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+          <div class="cart-col-subtotal">
+            $${itemSubtotal.toFixed(2)}
+          </div>
+          <div class="cart-col-action">
+            <button type="button" class="btn-remove" aria-label="Remove ${item.title}">✕</button>
+          </div>
+        `;
+
+        // Decrease quantity
+        row.querySelector('.minus').addEventListener('click', () => {
+          if (item.quantity > 1) {
+            item.quantity -= 1;
+            item.timestamp = Date.now();
+            saveCart(cart);
+            renderCartPage();
+          }
+        });
+
+        // Increase quantity
+        row.querySelector('.plus').addEventListener('click', () => {
+          item.quantity += 1;
+          item.timestamp = Date.now();
+          saveCart(cart);
+          renderCartPage();
+        });
+
+        // Input change
+        const input = row.querySelector('.input-qty');
+        input.addEventListener('change', () => {
+          let val = parseInt(input.value, 10);
+          if (isNaN(val) || val < 1) val = 1;
+          item.quantity = val;
+          item.timestamp = Date.now();
+          saveCart(cart);
+          renderCartPage();
+        });
+
+        // Remove item
+        row.querySelector('.btn-remove').addEventListener('click', () => {
+          const updated = cart.filter(i => i.id !== item.id);
+          saveCart(updated);
+          renderCartPage();
+          showToast(`Removed ${item.title} from cart.`, 'warning');
+        });
+
+        list.appendChild(row);
       });
+
+      container.appendChild(list);
+
+      const totalRow = document.createElement('div');
+      totalRow.className = 'cart-total-banner';
+      totalRow.innerHTML = `
+        <span class="total-label">Estimated Total:</span>
+        <span class="total-value">$${total.toFixed(2)} NZD</span>
+      `;
+      container.appendChild(totalRow);
+    }
+
+    renderCartPage();
+  })();
+
+  // ==========================================================================
+  // Checkout Page & Order Flow
+  // ==========================================================================
+  (function initCheckoutPage() {
+    const checkoutForm = document.getElementById('checkout-form');
+    const orderItemsContainer = document.getElementById('checkout-order-items');
+    const totalAmountEl = document.getElementById('checkout-total-amount');
+    const placeOrderBtn = document.getElementById('place-order-btn');
+    const previewEl = document.getElementById('email-preview');
+
+    if (!checkoutForm || !orderItemsContainer || !totalAmountEl) return;
+
+    const cart = getCart();
+
+    // Guard: Prevent placing empty order
+    if (cart.length === 0) {
+      orderItemsContainer.innerHTML = '<p class="empty-msg">Your cart is currently empty. Please add items before checking out.</p>';
+      totalAmountEl.textContent = '$0.00';
+      if (placeOrderBtn) {
+        placeOrderBtn.disabled = true;
+        placeOrderBtn.textContent = 'Cart is Empty';
+      }
+      return;
+    }
+
+    // Render summary list
+    let total = 0;
+    orderItemsContainer.innerHTML = '';
+    cart.forEach(item => {
+      const sub = (item.price || 0) * item.quantity;
+      total += sub;
+
+      const itemRow = document.createElement('div');
+      itemRow.className = 'summary-item-row';
+      itemRow.innerHTML = `
+        <span class="summary-item-title">${item.title} × ${item.quantity}</span>
+        <span class="summary-item-price">$${sub.toFixed(2)}</span>
+      `;
+      orderItemsContainer.appendChild(itemRow);
+    });
+
+    totalAmountEl.textContent = `$${total.toFixed(2)} NZD`;
+
+    // Form submission
+    checkoutForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const currentCart = getCart();
+
+      if (currentCart.length === 0) {
+        showToast('Your cart is empty.', 'warning');
+        return;
+      }
+
+      placeOrderBtn.disabled = true;
+      placeOrderBtn.textContent = 'Processing Order...';
+
+      const rawName = checkoutForm.name.value.trim();
+      const email = checkoutForm.email.value.trim();
+      const phone = checkoutForm.phone.value.trim();
+
+      // Format customer name for database sorting (Last, First) and email greetings (First, Last)
+      let dbName = rawName;
+      let emailName = rawName;
+      const parts = rawName.split(/\s+/).filter(Boolean);
+      if (parts.length > 1) {
+        const last = parts[parts.length - 1];
+        const first = parts.slice(0, -1).join(' ');
+        dbName = `${last} ${first}`;
+        emailName = `${first} ${last}`;
+      }
+
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            name: dbName,
+            emailName,
+            phone,
+            cart: currentCart,
+            total
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          // Clear cart
+          localStorage.removeItem(CART_KEY);
+          updateCartBadge();
+
+          // Render Success message
+          checkoutForm.style.display = 'none';
+          if (previewEl) {
+            previewEl.innerHTML = `
+              <div class="order-success-card">
+                <div class="success-icon">✓</div>
+                <h3>Order #${data.order_id} Confirmed!</h3>
+                <p>Thank you, <strong>${emailName}</strong>! We've reserved your biltong.</p>
+                <p>Payment instructions and pickup details have been sent to <strong>${email}</strong>.</p>
+                <div class="success-actions">
+                  <a href="/" class="btn">Return to Home</a>
+                </div>
+              </div>
+            `;
+          }
+          showToast(`Order #${data.order_id} successfully placed!`, 'success', 5000);
+        } else {
+          throw new Error(data.message || 'Failed to complete order.');
+        }
+      } catch (err) {
+        console.error('Order submission error:', err);
+        if (previewEl) {
+          previewEl.innerHTML = `
+            <div class="order-error-banner">
+              <strong>Error:</strong> ${err.message || 'Unable to submit your order. Please check your connection and try again.'}
+            </div>
+          `;
+        }
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.textContent = 'Place Order & Receive Payment Info';
+        showToast('Error processing order. Please try again.', 'warning');
+      }
+    });
+  })();
+
+  // ==========================================================================
+  // Contact Form Submission
+  // ==========================================================================
+  (function initContactForm() {
+    const form = document.getElementById('contact-form');
+    const resultDiv = document.getElementById('contact-result');
+    if (!form) return;
+
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.textContent;
+
+      submitBtn.textContent = 'Sending Message...';
+      submitBtn.disabled = true;
+
+      const name = form.name.value.trim();
+      const email = form.email.value.trim();
+      const message = form.message.value.trim();
+
+      try {
+        const res = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, message })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.status === 'success') {
+          if (resultDiv) {
+            resultDiv.innerHTML = `
+              <div class="alert alert-success">
+                <strong>Message sent!</strong> Thanks for getting in touch, ${name}. We'll respond shortly.
+              </div>
+            `;
+          }
+          form.reset();
+          showToast('Message sent successfully!');
+        } else {
+          throw new Error(data.error || 'Server error');
+        }
+      } catch (err) {
+        if (resultDiv) {
+          resultDiv.innerHTML = `
+            <div class="alert alert-danger">
+              <strong>Could not send message:</strong> ${err.message}. You can email us directly at biltongbites25@gmail.com.
+            </div>
+          `;
+        }
+      } finally {
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+      }
     });
   })();
 
 })();
-
-// Cart page rendering
-document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('cart-contents');
-  if (!container) return;
-  const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-  if (!cart.length) {
-    container.textContent = 'Your cart is empty';
-    return;
-  }
-  const list = document.createElement('ul');
-  list.className = 'cart-items';
-  let total = 0;
-  cart.forEach(item => {
-    const li = document.createElement('li');
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = item.title;
-
-    // Quantity controls
-    const qtyContainer = document.createElement('div');
-    qtyContainer.className = 'quantity-selector';
-    const minusBtn = document.createElement('button');
-    minusBtn.type = 'button';
-    minusBtn.className = 'qty-btn minus';
-    minusBtn.setAttribute('aria-label', 'Decrease quantity');
-    minusBtn.textContent = '−';
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.className = 'qty-input';
-    input.value = item.quantity;
-    input.min = 1;
-    const plusBtn = document.createElement('button');
-    plusBtn.type = 'button';
-    plusBtn.className = 'qty-btn plus';
-    plusBtn.setAttribute('aria-label', 'Increase quantity');
-    plusBtn.textContent = '+';
-    qtyContainer.append(minusBtn, input, plusBtn);
-
-    // Remove-from-cart button
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'remove-btn';
-    removeBtn.setAttribute('aria-label', 'Remove item');
-    removeBtn.textContent = '🗑️';
-    removeBtn.addEventListener('click', () => {
-      // remove item from cart and update UI
-      let cartData = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-      cartData = cartData.filter(i => i.id !== item.id);
-      localStorage.setItem('biltongCart', JSON.stringify(cartData));
-      li.remove();
-      recalcTotal();
-      // Update global badge
-      const badge = document.querySelector('.cart-count');
-      const count = cartData.reduce((acc, item) => acc + item.quantity, 0);
-      if (badge) badge.textContent = count > 0 ? count : '';
-    });
-
-    // Unit price for this line
-    const unitSpan = document.createElement('span');
-    unitSpan.textContent = `$${item.price.toFixed(2)}`;
-    // Price for this line (unit price * quantity)
-    const priceSpan = document.createElement('span');
-    priceSpan.textContent = `$${(item.price * item.quantity).toFixed(2)}`;
-
-    // Handlers to update quantity
-    function updateLine(q) {
-      const now = Date.now();
-      const cartData = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-      const it = cartData.find(i => i.id === item.id);
-      if (it) {
-        it.quantity = q;
-        it.timestamp = now;
-        localStorage.setItem('biltongCart', JSON.stringify(cartData));
-        input.value = q;
-        priceSpan.textContent = `$${(item.price * q).toFixed(2)}`;
-        recalcTotal();
-        // Update global badge
-        const badge = document.querySelector('.cart-count');
-        const count = cartData.reduce((acc, item) => acc + item.quantity, 0);
-        if (badge) badge.textContent = count > 0 ? count : '';
-      }
-    }
-    minusBtn.addEventListener('click', () => updateLine(Math.max(1, parseInt(input.value, 10) - 1)));
-    plusBtn.addEventListener('click', () => updateLine(parseInt(input.value, 10) + 1));
-    input.addEventListener('input', () => {
-      let v = parseInt(input.value, 10);
-      if (isNaN(v) || v < 1) v = 1;
-      updateLine(v);
-    });
-
-    li.append(titleSpan, unitSpan, qtyContainer, priceSpan, removeBtn);
-    list.append(li);
-    total += (item.price || 0) * item.quantity;
-  });
-  container.appendChild(list);
-  const totalEl = document.createElement('div');
-  totalEl.className = 'cart-total';
-  totalEl.textContent = `Total: $${total.toFixed(2)}`;
-  container.appendChild(totalEl);
-  // Recalculate cart total after quantity changes
-  function recalcTotal() {
-    const data = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-    const sum = data.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-    totalEl.textContent = `Total: $${sum.toFixed(2)}`;
-  }
-});
-
-// Checkout page email flow
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('checkout-form');
-  if (!form) return;
-  const preview = document.getElementById('email-preview');
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = form.email.value.trim();
-    const phone = form.phone.value.trim();
-    const rawName = form.name.value.trim();
-
-    // Split name for DB (Last First) and Email (First Last)
-    let dbName = rawName;
-    let emailName = rawName;
-    const nameParts = rawName.split(' ').filter(Boolean);
-    if (nameParts.length > 1) {
-      const last = nameParts.pop();
-      const first = nameParts.join(' ');
-      dbName = `${last} ${first}`;
-      emailName = `${first} ${last}`;
-    }
-
-    const cart = JSON.parse(localStorage.getItem('biltongCart') || '[]');
-    let body = `Thank you for your order!\n\nPlease complete your payment to our bank account:\n\nAccount Name: Biltong Bites\nAccount Number: 12345678\nSort Code: 00-00-00\n\nOrder details:\n`;
-    let total = 0;
-    cart.forEach(item => {
-      body += `- ${item.title} x ${item.quantity} @ $${item.price.toFixed(2)}\n`;
-      total += item.price * item.quantity;
-    });
-    body += `\nTotal: $${total.toFixed(2)}\n\nCheers,\nBiltong Bites Team`;
-
-    try {
-      // Send to our new API endpoint
-      await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: dbName, emailName, phone, cart, total })
-      });
-      console.log('Order successfully sent to server.');
-      // Clear cart after successful order
-      localStorage.removeItem('biltongCart');
-      const badge = document.querySelector('.cart-count');
-      if (badge) badge.textContent = '';
-
-      // Show success message instead of opening mail client
-      if (preview) {
-        preview.innerHTML = `<div style="padding: 1rem; background-color: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50; margin-top: 1rem;">
-          <strong>Order successful!</strong><br>
-          We've received your order and payment details have been sent to <em>${email}</em>.
-        </div>`;
-      }
-      form.reset();
-    } catch (err) {
-      console.error('Failed to submit order to API:', err);
-      if (preview) preview.textContent = "There was an error processing your order. Please try again.";
-    }
-  });
-});
-
-// Contact form submission
-document.addEventListener('DOMContentLoaded', () => {
-  const contactForm = document.getElementById('contact-form');
-  if (!contactForm) return;
-  const resultDiv = document.getElementById('contact-result');
-
-  contactForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const submitBtn = contactForm.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerText;
-    submitBtn.innerText = "Sending...";
-    submitBtn.disabled = true;
-
-    const name = contactForm.name.value.trim();
-    const email = contactForm.email.value.trim();
-    const message = contactForm.message.value.trim();
-
-    try {
-      const res = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, message })
-      });
-
-      if (res.ok) {
-        resultDiv.innerHTML = `<div style="padding: 1rem; background-color: rgba(76, 175, 80, 0.1); border: 1px solid #4CAF50; border-radius: 4px; color: #4CAF50;">
-          <strong>Message Sent!</strong><br>
-          Thank you for reaching out. We will get back to you shortly.
-        </div>`;
-        contactForm.reset();
-      } else {
-        const err = await res.json();
-        resultDiv.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red; border-radius: 4px;">Failed to send: ${err.error || 'Unknown error'}</div>`;
-      }
-    } catch (err) {
-      resultDiv.innerHTML = `<div style="color: red; padding: 1rem; border: 1px solid red; border-radius: 4px;">An error occurred. Please try again.</div>`;
-    } finally {
-      submitBtn.innerText = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-});

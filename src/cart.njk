@@ -1,21 +1,31 @@
 ---
 layout: layouts/base.njk
 title: Shopping Cart
-description: Review and manage your cart items
+description: Review and manage your cart items before checkout
 ---
 
 <article class="container cart-page">
-  <header>
-    <h1>Shopping Cart</h1>
+  <header class="cart-page-header">
+    <h1>Your Shopping Cart</h1>
+    <p class="cart-subtitle">Review your selected biltong packs and adjust quantities.</p>
   </header>
-  <div class="cart-header">
-    <span>Product</span>
-    <span>Unit Price</span>
-    <span>Quantity</span>
-    <span>Total</span>
-    <span></span>
+
+  <div class="cart-container-box">
+    <div class="cart-header">
+      <span>Product</span>
+      <span>Unit Price</span>
+      <span>Quantity</span>
+      <span>Subtotal</span>
+      <span style="text-align: right;">Action</span>
+    </div>
+    
+    <div id="cart-contents">
+      <!-- Injected by main.js -->
+    </div>
   </div>
-  <div id="cart-contents"></div>
-  <a href="/" class="btn">Back to products</a>
-  <a href="/checkout/" class="btn">Checkout Now</a>
+
+  <div class="cart-actions-bar">
+    <a href="/#products" class="btn btn-ghost">← Continue Shopping</a>
+    <a href="/checkout/" class="btn btn-primary" id="checkout-btn">Proceed to Checkout →</a>
+  </div>
 </article>

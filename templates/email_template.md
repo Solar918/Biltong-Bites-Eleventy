@@ -1,6 +1,6 @@
 Dear {Customer Name},
 
-Thank you for yor order with Biltong Bites! We appreciate your business.
+Thank you for your order with Biltong Bites! We appreciate your business.
 
 To finalize your purchase, please transfer the total amount to the bank account detailed below:
 

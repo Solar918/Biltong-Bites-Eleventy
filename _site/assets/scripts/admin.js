@@ -1,60 +1,126 @@
+/**
+ * Biltong Bites - Admin Dashboard Controller
+ * ===========================================
+ * Handles:
+ * - Fetching order & customer metrics from `/api/admin/data`
+ * - KPI summary cards calculation (Total Revenue, Pending, Completed, Customers)
+ * - Multi-view toggles: Combined View, Orders Only, Customers Only
+ * - Real-time filtering by specific customer and product keyword
+ * - Order completion action with email dispatch trigger
+ * - Individual order deletion and customer cascading deletion
+ * - Full database orders reset with sequence zeroing
+ */
+
 document.addEventListener('DOMContentLoaded', async () => {
+  'use strict';
+
+  // DOM Elements
   const contentDiv = document.getElementById('admin-content');
   const viewOrdersBtn = document.getElementById('view-orders');
   const viewCustomersBtn = document.getElementById('view-customers');
   const viewCombinedBtn = document.getElementById('view-combined');
   const resetOrdersBtn = document.getElementById('reset-orders-btn');
-
   const filterCustomer = document.getElementById('filter-customer');
   const filterProduct = document.getElementById('filter-product');
 
+  // Application State
   let rawData = { customers: [], orders: [] };
-  let currentView = 'combined'; // orders, customers, combined
+  let currentView = 'combined'; // 'combined' | 'orders' | 'customers'
 
+  // ==========================================================================
+  // Data Fetching
+  // ==========================================================================
   async function loadData() {
     try {
+      contentDiv.innerHTML = '<div class="admin-loading"><p>Loading dashboard metrics...</p></div>';
       const res = await fetch('/api/admin/data');
+
       if (res.status === 401) {
-        contentDiv.innerHTML = '<p style="color:red;">Unauthorized. Please refresh and log in.</p>';
+        contentDiv.innerHTML = `
+          <div class="admin-alert admin-alert-danger">
+            <strong>Unauthorized:</strong> Please reload the page and provide valid admin credentials.
+          </div>
+        `;
         return;
       }
+
       rawData = await res.json();
 
-      // Sort customers alphabetically by last name (which is the first word since DB stores "Last First")
+      // Sort customers alphabetically by name
       if (rawData.customers) {
-        rawData.customers.sort((a, b) => a.name.localeCompare(b.name));
+        rawData.customers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       }
 
       populateCustomerDropdown();
       render();
     } catch (e) {
-      contentDiv.innerHTML = `<p style="color:red;">Error loading data: ${e.message}</p>`;
+      contentDiv.innerHTML = `
+        <div class="admin-alert admin-alert-danger">
+          <strong>Error loading dashboard:</strong> ${e.message}
+        </div>
+      `;
     }
   }
 
+  // ==========================================================================
+  // Dropdown Population & Stats
+  // ==========================================================================
   function populateCustomerDropdown() {
+    if (!filterCustomer) return;
     const defaultOpt = '<option value="">All Customers</option>';
-    const opts = rawData.customers.map(c => `<option value="${c.id}">${c.name} (${c.email})</option>`).join('');
+    const opts = (rawData.customers || []).map(c => `
+      <option value="${c.id}">${c.name} (${c.email})</option>
+    `).join('');
     filterCustomer.innerHTML = defaultOpt + opts;
   }
 
+  function renderStats(orders, customers) {
+    const totalRev = orders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const pendingOrders = orders.filter(o => o.status !== 'Completed').length;
+    const completedOrders = orders.filter(o => o.status === 'Completed').length;
+
+    return `
+      <div class="admin-stats-grid">
+        <div class="stat-card">
+          <span class="stat-title">Total Revenue</span>
+          <span class="stat-val">$${totalRev.toFixed(2)}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">Active / Pending</span>
+          <span class="stat-val stat-val-pending">${pendingOrders}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">Completed Orders</span>
+          <span class="stat-val stat-val-success">${completedOrders}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">Unique Customers</span>
+          <span class="stat-val">${customers.length}</span>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================================================
+  // View Rendering
+  // ==========================================================================
   function render() {
-    const selectedCustomerId = filterCustomer.value;
-    const filterText = filterProduct.value.toLowerCase();
+    const selectedCustomerId = filterCustomer ? filterCustomer.value : '';
+    const filterText = filterProduct ? filterProduct.value.toLowerCase().trim() : '';
 
     // Filter orders
-    let filteredOrders = rawData.orders;
+    let filteredOrders = rawData.orders || [];
     if (selectedCustomerId) {
       filteredOrders = filteredOrders.filter(o => o.customer_id.toString() === selectedCustomerId);
     }
     if (filterText) {
       filteredOrders = filteredOrders.filter(o => {
-        return o.cart.some(item => item.title.toLowerCase().includes(filterText));
+        return (o.cart || []).some(item => (item.title || '').toLowerCase().includes(filterText));
       });
     }
 
-    // Filter customers (only show customers who match the Orders filter if it's active)
-    let filteredCustomers = rawData.customers;
+    // Filter customers
+    let filteredCustomers = rawData.customers || [];
     if (selectedCustomerId) {
       filteredCustomers = filteredCustomers.filter(c => c.id.toString() === selectedCustomerId);
     }
@@ -63,183 +129,202 @@ document.addEventListener('DOMContentLoaded', async () => {
       filteredCustomers = filteredCustomers.filter(c => validCustomerIds.has(c.id));
     }
 
+    const statsHtml = renderStats(rawData.orders || [], rawData.customers || []);
+
     if (currentView === 'orders') {
-      renderOrders(filteredOrders);
+      contentDiv.innerHTML = statsHtml + renderOrdersTable(filteredOrders);
     } else if (currentView === 'customers') {
-      renderCustomers(filteredCustomers);
+      contentDiv.innerHTML = statsHtml + renderCustomersTable(filteredCustomers);
     } else {
-      renderCombined(filteredCustomers, filteredOrders);
+      contentDiv.innerHTML = statsHtml + renderCombinedCards(filteredCustomers, filteredOrders);
     }
+
+    attachActionListeners();
   }
 
-  function renderOrders(orders) {
+  function renderOrdersTable(orders) {
     if (orders.length === 0) {
-      contentDiv.innerHTML = '<p>No orders found.</p>';
-      return;
+      return '<div class="admin-empty">No orders found matching the filter criteria.</div>';
     }
 
     let html = `
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 1rem;">Order #</th>
-            <th style="padding: 1rem;">Customer</th>
-            <th style="padding: 1rem;">Items</th>
-            <th style="padding: 1rem;">Total</th>
-            <th style="padding: 1rem;">Status</th>
-            <th style="padding: 1rem;">Date</th>
-            <th style="padding: 1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Order #</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
 
     orders.forEach(o => {
-      const itemsList = o.cart.map(i => `${i.title} (x${i.quantity})`).join(', ');
+      const itemsList = (o.cart || []).map(i => `${i.title} (×${i.quantity})`).join(', ');
+      const isCompleted = o.status === 'Completed';
+
       html += `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 1rem;">#${o.id}</td>
-          <td style="padding: 1rem;">${o.customer_name}</td>
-          <td style="padding: 1rem;">${itemsList}</td>
-          <td style="padding: 1rem;">$${o.total.toFixed(2)}</td>
-          <td style="padding: 1rem;">
-            <span style="padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; background: ${o.status === 'Completed' ? 'var(--accent)' : 'var(--muted)'}; color: white;">
-              ${o.status}
+        <tr>
+          <td><strong>#${o.id}</strong></td>
+          <td>
+            <strong>${o.customer_name || 'Anonymous'}</strong><br>
+            <span class="admin-subtext">${o.customer_email || ''}</span>
+          </td>
+          <td>${itemsList}</td>
+          <td><strong>$${(o.total || 0).toFixed(2)}</strong></td>
+          <td>
+            <span class="badge ${isCompleted ? 'badge-success' : 'badge-pending'}">
+              ${o.status || 'Pending'}
             </span>
           </td>
-          <td style="padding: 1rem;">${new Date(o.created_at).toLocaleDateString()}</td>
-          <td style="padding: 1rem; display: flex; gap: 0.5rem;">
-            ${o.status !== 'Completed' ? `<button class="btn complete-btn" data-id="${o.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Complete</button>` : ''}
-            <button class="btn btn-ghost delete-btn" data-id="${o.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #ff4444; border-color: #ff4444;">Remove</button>
+          <td>${new Date(o.created_at).toLocaleDateString()}</td>
+          <td style="text-align: right;">
+            <div class="admin-actions-group">
+              ${!isCompleted ? `<button class="btn btn-sm btn-primary complete-btn" data-id="${o.id}">Complete</button>` : ''}
+              <button class="btn btn-sm btn-danger delete-btn" data-id="${o.id}">Delete</button>
+            </div>
           </td>
         </tr>
       `;
     });
 
-    html += `</tbody></table>`;
-    contentDiv.innerHTML = html;
-    attachActionListeners();
+    html += `</tbody></table></div>`;
+    return html;
   }
 
-  function renderCustomers(customers) {
+  function renderCustomersTable(customers) {
     if (customers.length === 0) {
-      contentDiv.innerHTML = '<p>No customers found.</p>';
-      return;
+      return '<div class="admin-empty">No customers found matching the filter criteria.</div>';
     }
 
     let html = `
-      <table style="width: 100%; border-collapse: collapse; text-align: left;">
-        <thead>
-          <tr style="border-bottom: 2px solid var(--border);">
-            <th style="padding: 1rem;">ID</th>
-            <th style="padding: 1rem;">Name</th>
-            <th style="padding: 1rem;">Email</th>
-            <th style="padding: 1rem;">Phone</th>
-            <th style="padding: 1rem;">Joined</th>
-            <th style="padding: 1rem;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
+      <div class="admin-table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Full Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Registered</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
     `;
 
     customers.forEach(c => {
       html += `
-        <tr style="border-bottom: 1px solid var(--border);">
-          <td style="padding: 1rem;">${c.id}</td>
-          <td style="padding: 1rem; font-weight: bold;">${c.name}</td>
-          <td style="padding: 1rem;"><a href="mailto:${c.email}" style="color: var(--accent);">${c.email}</a></td>
-          <td style="padding: 1rem;">${c.phone}</td>
-          <td style="padding: 1rem;">${new Date(c.created_at).toLocaleDateString()}</td>
-          <td style="padding: 1rem;">
-             <button class="btn btn-ghost delete-customer-btn" data-id="${c.id}" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; color: #ff4444; border-color: #ff4444;">Remove</button>
+        <tr>
+          <td>#${c.id}</td>
+          <td><strong>${c.name}</strong></td>
+          <td><a href="mailto:${c.email}" class="admin-link">${c.email}</a></td>
+          <td>${c.phone || 'N/A'}</td>
+          <td>${new Date(c.created_at).toLocaleDateString()}</td>
+          <td style="text-align: right;">
+            <button class="btn btn-sm btn-danger delete-customer-btn" data-id="${c.id}">Remove</button>
           </td>
         </tr>
       `;
     });
 
-    html += `</tbody></table>`;
-    contentDiv.innerHTML = html;
-    attachActionListeners();
+    html += `</tbody></table></div>`;
+    return html;
   }
 
-  function renderCombined(customers, orders) {
+  function renderCombinedCards(customers, orders) {
     if (customers.length === 0) {
-      contentDiv.innerHTML = '<p>No data found.</p>';
-      return;
+      return '<div class="admin-empty">No records found matching criteria.</div>';
     }
 
-    let html = `<div style="display: flex; flex-direction: column; gap: 2rem;">`;
+    let html = `<div class="admin-combined-list">`;
 
     customers.forEach(c => {
       const custOrders = orders.filter(o => o.customer_id === c.id);
-      if (custOrders.length === 0) return; // Skip if filtered out
+      if (custOrders.length === 0) return;
 
       html += `
-        <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 1rem; margin-bottom: 1rem;">
+        <div class="admin-card">
+          <div class="admin-card-header">
             <div>
-              <h2 style="margin: 0; font-size: 1.25rem;">${c.name}</h2>
-              <p style="margin: 0; color: var(--muted); font-size: 0.9rem;">${c.email} | ${c.phone}</p>
+              <h3 class="admin-card-title">${c.name}</h3>
+              <p class="admin-card-subtitle">${c.email} • ${c.phone}</p>
             </div>
-            <div style="text-align: right;">
-              <span style="font-weight: bold; color: var(--accent);">${custOrders.length} Order(s)</span>
+            <div class="admin-card-badge">
+              ${custOrders.length} Order(s)
             </div>
           </div>
-          <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-            <thead>
-              <tr style="border-bottom: 2px solid var(--border);">
-                <th style="padding: 0.5rem;">Order #</th>
-                <th style="padding: 0.5rem;">Items</th>
-                <th style="padding: 0.5rem;">Total</th>
-                <th style="padding: 0.5rem;">Status</th>
-                <th style="padding: 0.5rem;">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+
+          <div class="admin-table-container">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
       `;
 
       custOrders.forEach(o => {
-        const itemsList = o.cart.map(i => `${i.title} (x${i.quantity})`).join(', ');
+        const itemsList = (o.cart || []).map(i => `${i.title} (×${i.quantity})`).join(', ');
+        const isCompleted = o.status === 'Completed';
+
         html += `
-          <tr style="border-bottom: 1px solid var(--border);">
-            <td style="padding: 0.5rem;">#${o.id}</td>
-            <td style="padding: 0.5rem;">${itemsList}</td>
-            <td style="padding: 0.5rem;">$${o.total.toFixed(2)}</td>
-            <td style="padding: 0.5rem;">
-              <span style="font-weight: bold; color: ${o.status === 'Completed' ? 'var(--accent)' : 'var(--muted)'};">
-                ${o.status}
+          <tr>
+            <td><strong>#${o.id}</strong></td>
+            <td>${itemsList}</td>
+            <td><strong>$${(o.total || 0).toFixed(2)}</strong></td>
+            <td>
+              <span class="badge ${isCompleted ? 'badge-success' : 'badge-pending'}">
+                ${o.status || 'Pending'}
               </span>
             </td>
-            <td style="padding: 0.5rem; display: flex; gap: 0.5rem;">
-              ${o.status !== 'Completed' ? `<button class="btn complete-btn" data-id="${o.id}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">Complete</button>` : ''}
-              <button class="btn btn-ghost delete-btn" data-id="${o.id}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem; color: #ff4444; border-color: #ff4444;">Remove</button>
+            <td style="text-align: right;">
+              <div class="admin-actions-group">
+                ${!isCompleted ? `<button class="btn btn-sm btn-primary complete-btn" data-id="${o.id}">Complete</button>` : ''}
+                <button class="btn btn-sm btn-danger delete-btn" data-id="${o.id}">Delete</button>
+              </div>
             </td>
           </tr>
         `;
       });
-      html += `</tbody></table></div>`;
+
+      html += `</tbody></table></div></div>`;
     });
 
     html += `</div>`;
-    contentDiv.innerHTML = html;
-    attachActionListeners();
+    return html;
   }
 
+  // ==========================================================================
+  // Action Handlers
+  // ==========================================================================
   function attachActionListeners() {
+    // Complete order
     document.querySelectorAll('.complete-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      btn.addEventListener('click', async e => {
         const id = e.target.getAttribute('data-id');
-        if (confirm(`Mark Order #${id} as Completed and send email?`)) {
+        if (confirm(`Mark Order #${id} as Completed and send notification email?`)) {
           e.target.disabled = true;
-          e.target.innerText = "Processing...";
+          e.target.textContent = 'Updating...';
           await fetch(`/api/admin/orders/${id}/complete`, { method: 'POST' });
           await loadData();
         }
       });
     });
 
+    // Delete single order
     document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      btn.addEventListener('click', async e => {
         const id = e.target.getAttribute('data-id');
         if (confirm(`Are you sure you want to permanently delete Order #${id}?`)) {
           await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' });
@@ -248,10 +333,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     });
 
+    // Delete customer
     document.querySelectorAll('.delete-customer-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
+      btn.addEventListener('click', async e => {
         const id = e.target.getAttribute('data-id');
-        if (confirm(`Are you sure you want to permanently delete Customer #${id} and ALL of their orders?`)) {
+        if (confirm(`Delete Customer #${id} and ALL their linked orders?`)) {
           await fetch(`/api/admin/customers/${id}`, { method: 'DELETE' });
           await loadData();
         }
@@ -259,8 +345,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Event Listeners
-  viewOrdersBtn.addEventListener('click', () => {
+  // View Switchers
+  viewOrdersBtn?.addEventListener('click', () => {
     currentView = 'orders';
     viewOrdersBtn.classList.remove('btn-ghost');
     viewCustomersBtn.classList.add('btn-ghost');
@@ -268,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  viewCustomersBtn.addEventListener('click', () => {
+  viewCustomersBtn?.addEventListener('click', () => {
     currentView = 'customers';
     viewCustomersBtn.classList.remove('btn-ghost');
     viewOrdersBtn.classList.add('btn-ghost');
@@ -276,7 +362,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  viewCombinedBtn.addEventListener('click', () => {
+  viewCombinedBtn?.addEventListener('click', () => {
     currentView = 'combined';
     viewCombinedBtn.classList.remove('btn-ghost');
     viewOrdersBtn.classList.add('btn-ghost');
@@ -284,31 +370,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     render();
   });
 
-  resetOrdersBtn.addEventListener('click', async () => {
-    if (confirm("🚨 WARNING: Are you absolutely sure you want to delete ALL orders? The next order will start at #1 again. This cannot be undone.")) {
+  // Reset database orders
+  resetOrdersBtn?.addEventListener('click', async () => {
+    if (confirm('🚨 DANGER: Delete ALL orders from the database and reset the order numbering? This cannot be undone.')) {
       try {
         resetOrdersBtn.disabled = true;
-        resetOrdersBtn.innerText = "Resetting...";
+        resetOrdersBtn.textContent = 'Resetting...';
         const res = await fetch('/api/admin/reset_orders', { method: 'DELETE' });
         if (res.ok) {
-          alert('All orders have been deleted and the order ID counter has been reset.');
+          alert('All orders have been cleared.');
           await loadData();
         } else {
           const err = await res.json();
-          alert('Error resetting orders: ' + err.error);
+          alert('Failed to reset orders: ' + err.error);
         }
       } catch (e) {
-        alert('Error resetting orders: ' + e.message);
+        alert('Reset error: ' + e.message);
       } finally {
         resetOrdersBtn.disabled = false;
-        resetOrdersBtn.innerText = "Reset All Orders";
+        resetOrdersBtn.textContent = 'Reset All Orders';
       }
     }
   });
 
-  filterCustomer.addEventListener('change', render);
-  filterProduct.addEventListener('change', render);
+  filterCustomer?.addEventListener('change', render);
+  filterProduct?.addEventListener('input', render);
 
-  // Initial load
+  // Initial fetch
   loadData();
 });

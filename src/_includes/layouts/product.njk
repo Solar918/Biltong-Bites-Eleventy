@@ -5,25 +5,55 @@ description: "{{ description }}"
 ---
 
 <article class="container product-detail">
-  <header>
-    <h1>{{ title }}</h1>
-    {% if price %}
-    <p class="price" data-unit-price="{{ price }}">${{ price }}</p>
+  <div class="detail-image-wrapper">
+    {% if image %}
+      <img src="{{ image }}" alt="{{ title }}" class="detail-image" />
+    {% else %}
+      <img src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80&w=800" alt="{{ title }}" class="detail-image" />
     {% endif %}
-    <div class="quantity-selector">
-      <button type="button" class="qty-btn minus" aria-label="Decrease quantity">−</button>
-      <input type="number" class="qty-input" value="1" min="1" aria-label="Quantity" />
-      <button type="button" class="qty-btn plus" aria-label="Increase quantity">+</button>
-      <button type="button" class="qty-btn add-to-cart" aria-label="Add to cart">Add to Cart</button>
+    <span class="detail-badge">100% NZ Beef</span>
+  </div>
+
+  <div class="detail-content">
+    <a href="/#products" class="back-link">← Back to all products</a>
+    <h1 class="detail-title">{{ title }}</h1>
+
+    <div class="detail-tags">
+      {% for f in flavour %}
+        <span class="tag tag-flavour">{{ f }}</span>
+      {% endfor %}
+      {% for q in quantity %}
+        <span class="tag tag-size">{{ q }}</span>
+      {% endfor %}
     </div>
-  </header>
-  {% if image %}
-  <div class="detail-image">
-    <img src="{{ image }}" alt="{{ title }}" />
+
+    {% if price %}
+      <div class="detail-price-box">
+        <span class="price-label">Price:</span>
+        <span class="price" data-unit-price="{{ price }}">${{ price }}</span>
+      </div>
+    {% endif %}
+
+    <div class="detail-description">
+      <h3>Description</h3>
+      <p>{{ description }}</p>
+      <p>Hand-cured with our signature blend of roasted coriander, cracked black pepper, sea salt, and brown vinegar. High in clean, bioavailable protein with minimal processing.</p>
+    </div>
+
+    <div class="detail-purchase-box">
+      <label class="qty-label">Quantity</label>
+      <div class="quantity-selector">
+        <button type="button" class="qty-btn minus" aria-label="Decrease quantity">−</button>
+        <input type="number" class="qty-input" value="1" min="1" max="99" aria-label="Quantity" />
+        <button type="button" class="qty-btn plus" aria-label="Increase quantity">+</button>
+        <button type="button" class="btn btn-primary add-to-cart" 
+                data-id="{{ page.url }}" 
+                data-title="{{ title }}" 
+                data-price="{{ price }}"
+                aria-label="Add {{ title }} to cart">
+          Add to Cart
+        </button>
+      </div>
+    </div>
   </div>
-  {% endif %}
-  <div class="detail-info">
-    <p>{{ description }}</p>
-  </div>
-  <a href="/" class="btn">Back to products</a>
 </article>

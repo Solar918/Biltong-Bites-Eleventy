@@ -4,19 +4,38 @@
   data-flavour="{{ (product.data.flavour or []).join(' ').toLowerCase() }}"
   data-quantity="{{ (product.data.quantity or []).join(' ').toLowerCase() }}"
   data-price="{{ product.data.price or '' }}">
+  
   <div class="card-media">
+    <span class="card-price-badge">${{ product.data.price | default('0') }}</span>
     {% if product.data.image %}
       <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }}" />
     {% else %}
       <img loading="lazy" src="https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&q=80&w=800" alt="Beef Jerky / Biltong" />
     {% endif %}
   </div>
+
   <div class="card-body">
+    <div class="card-tags">
+      {% for f in product.data.flavour %}
+        <span class="tag tag-flavour">{{ f }}</span>
+      {% endfor %}
+      {% for q in product.data.quantity %}
+        <span class="tag tag-size">{{ q }}</span>
+      {% endfor %}
+    </div>
+
     <h3 class="card-title">{{ product.data.title }}</h3>
     <p class="card-desc">{{ product.data.description }}</p>
+
     <div class="card-actions">
       <a class="btn btn-ghost more" href="{{ product.url }}">Details</a>
-      <button type="button" class="btn add-to-cart" data-id="{{ product.url }}" data-title="{{ product.data.title }}" data-price="{{ product.data.price }}" aria-label="Add to cart">Add to Cart</button>
+      <button type="button" class="btn btn-primary add-to-cart" 
+              data-id="{{ product.url }}" 
+              data-title="{{ product.data.title }}" 
+              data-price="{{ product.data.price }}" 
+              aria-label="Add {{ product.data.title }} to cart">
+        Add to Cart
+      </button>
     </div>
   </div>
 </article>

@@ -1,0 +1,17 @@
+name = "biltong-bites"
+compatibility_date = "2024-09-01"
+pages_build_output_dir = "_site"
+
+# Cloudflare D1 Database Binding
+# Bind D1 database "biltong-bites-db" to the variable "DB" accessed in functions/
+[[d1_databases]]
+binding = "DB"
+database_name = "biltong-bites-db"
+database_id = "your-d1-database-id-here"
+
+[vars]
+PHONE_NUMBER = "+64 27 305 7992"
+ACCOUNT_NUMBER = "12345678"
+SENDER_EMAIL = "biltongbites25@gmail.com"
+ADMIN_USERNAME = "admin"
+# Note: ADMIN_PASSWORD and RESEND_API_KEY should be set in Cloudflare Dashboard > Settings > Environment Variables
