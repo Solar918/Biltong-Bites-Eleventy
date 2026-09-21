@@ -108,23 +108,48 @@
   }
 
   // ==========================================================================
-  // Product Search & Filter Dropdown
+  // Product Search, Filter & Sort Controller
   // ==========================================================================
+  const productGrid = $('#product-grid');
   const products = $$('#product-grid .product');
   const searchInput = $('#product-search');
+  const sortSelect = $('#product-sort');
   const flavourRoot = $('#flavour-filters');
   const quantityRoot = $('#quantity-filters');
   const filterBtn = $('#filter-btn');
   const emptyState = $('#no-products-message');
   const clearFiltersBtn = $('#clear-filters-btn');
 
-  function applyFilters() {
+  // Preserve initial default ordering
+  const initialProductsOrder = [...products];
+
+  function sortProducts(items, criteria) {
+    const sorted = [...items];
+    switch (criteria) {
+      case 'price-asc':
+        return sorted.sort((a, b) => (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0));
+      case 'price-desc':
+        return sorted.sort((a, b) => (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0));
+      case 'size-asc':
+        return sorted.sort((a, b) => (parseFloat(a.dataset.weight) || 0) - (parseFloat(b.dataset.weight) || 0));
+      case 'size-desc':
+        return sorted.sort((a, b) => (parseFloat(b.dataset.weight) || 0) - (parseFloat(a.dataset.weight) || 0));
+      case 'popularity':
+        return sorted.sort((a, b) => (parseFloat(b.dataset.popularity) || 0) - (parseFloat(a.dataset.popularity) || 0));
+      case 'default':
+      default:
+        return sorted.sort((a, b) => initialProductsOrder.indexOf(a) - initialProductsOrder.indexOf(b));
+    }
+  }
+
+  function applyFiltersAndSort() {
     const q = (searchInput?.value || '').trim().toLowerCase();
     const activeFlavours = $$('#flavour-filters input:checked').map(i => i.value);
     const activeQuantities = $$('#quantity-filters input:checked').map(i => i.value);
+    const sortVal = sortSelect?.value || 'default';
 
+    // 1. Filter products
     let matchCount = 0;
-
     products.forEach(el => {
       const title = el.dataset.title || '';
       const desc = el.dataset.desc || '';
@@ -141,21 +166,29 @@
       if (isVisible) matchCount++;
     });
 
+    // 2. Re-order elements in the DOM based on sort criteria
+    if (productGrid) {
+      const ordered = sortProducts(products, sortVal);
+      ordered.forEach(el => productGrid.appendChild(el));
+    }
+
     if (emptyState) {
       emptyState.style.display = matchCount === 0 ? 'block' : 'none';
     }
   }
 
-  searchInput?.addEventListener('input', applyFilters);
-  flavourRoot?.addEventListener('change', applyFilters);
-  quantityRoot?.addEventListener('change', applyFilters);
+  searchInput?.addEventListener('input', applyFiltersAndSort);
+  sortSelect?.addEventListener('change', applyFiltersAndSort);
+  flavourRoot?.addEventListener('change', applyFiltersAndSort);
+  quantityRoot?.addEventListener('change', applyFiltersAndSort);
 
   if (clearFiltersBtn) {
     clearFiltersBtn.addEventListener('click', () => {
       if (searchInput) searchInput.value = '';
+      if (sortSelect) sortSelect.value = 'default';
       $$('#flavour-filters input:checked').forEach(i => (i.checked = false));
       $$('#quantity-filters input:checked').forEach(i => (i.checked = false));
-      applyFilters();
+      applyFiltersAndSort();
     });
   }
 

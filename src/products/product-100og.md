@@ -5,5 +5,7 @@ description: A satisfying snack-sized serve—flavourful, protein-rich, and read
 price: 8.00
 flavour: ["Original"]
 quantity: ["100g"]
+weight: 100
+popularity: 5
 image: /assets/images/100og.jpeg
 ---

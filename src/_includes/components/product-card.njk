@@ -3,10 +3,15 @@
   data-desc="{{ (product.data.description or '') | lower }}"
   data-flavour="{{ (product.data.flavour or []).join(' ').toLowerCase() }}"
   data-quantity="{{ (product.data.quantity or []).join(' ').toLowerCase() }}"
-  data-price="{{ product.data.price or '' }}">
+  data-price="{{ product.data.price or 0 }}"
+  data-weight="{{ product.data.weight or 0 }}"
+  data-popularity="{{ product.data.popularity or 0 }}">
   
   <div class="card-media">
     <span class="card-price-badge">${{ product.data.price | default('0') }}</span>
+    {% if product.data.popularity >= 5 %}
+      <span class="card-popular-badge">★ Best Seller</span>
+    {% endif %}
     {% if product.data.image %}
       <img loading="lazy" src="{{ product.data.image }}" alt="{{ product.data.title }}" />
     {% else %}

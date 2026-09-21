@@ -97,10 +97,24 @@
           </div>
 
           <div class="controls">
+            <!-- Search Input -->
             <label class="search" for="product-search">
               <span class="visually-hidden">Search products</span>
               <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
             </label>
+
+            <!-- Sort Dropdown -->
+            <div class="sort-control">
+              <label for="product-sort" class="visually-hidden">Sort products</label>
+              <select id="product-sort" aria-label="Sort products">
+                <option value="default">Sort by: Default</option>
+                <option value="popularity">Popularity (Best Sellers)</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="size-asc">Size: Small to Large</option>
+                <option value="size-desc">Size: Large to Small</option>
+              </select>
+            </div>
 
             <div class="filter-dropdown">
               <button class="filter-toggle" id="filter-btn" aria-haspopup="true" aria-expanded="false">
@@ -136,7 +150,9 @@
             data-desc="a small, tasty hit of biltong—perfect for light snacking."
             data-flavour="original"
             data-quantity="50g"
-            data-price="5">
+            data-price="5"
+            data-weight="50"
+            data-popularity="3">
             <div class="card-media">
               <span class="card-price-badge">$5.00</span>
               <img loading="lazy" src="/assets/images/50og.jpeg" alt="Original Biltong - 50g" />
@@ -167,7 +183,9 @@
             data-desc="a satisfying snack-sized serve—flavourful, protein-rich, and ready anytime."
             data-flavour="original"
             data-quantity="100g"
-            data-price="8">
+            data-price="8"
+            data-weight="100"
+            data-popularity="5">
             <div class="card-media">
               <span class="card-price-badge">$8.00</span>
               <img loading="lazy" src="/assets/images/100og.jpeg" alt="Original Biltong - 100g" />
@@ -198,7 +216,9 @@
             data-desc="just the right size for a quick, delicious treat on the go."
             data-flavour="original"
             data-quantity="250g"
-            data-price="15">
+            data-price="15"
+            data-weight="250"
+            data-popularity="4">
             <div class="card-media">
               <span class="card-price-badge">$15.00</span>
               <img loading="lazy" src="/assets/images/250og.jpeg" alt="Original Biltong - 250g" />
@@ -229,7 +249,9 @@
             data-desc="a hearty portion for the avid snacker, with authentic savanna taste."
             data-flavour="original"
             data-quantity="500g"
-            data-price="25">
+            data-price="25"
+            data-weight="500"
+            data-popularity="2">
             <div class="card-media">
               <span class="card-price-badge">$25.00</span>
               <img loading="lazy" src="/assets/images/500og.jpeg" alt="Original Biltong - 500g" />
@@ -260,7 +282,9 @@
             data-desc="perfect for sharing or savoring over time—rich, bold, and packed with flavor."
             data-flavour="original"
             data-quantity="1kg"
-            data-price="50">
+            data-price="50"
+            data-weight="1000"
+            data-popularity="1">
             <div class="card-media">
               <span class="card-price-badge">$50.00</span>
               <img loading="lazy" src="/assets/images/1000og.jpeg" alt="Original Biltong - 1kg" />
