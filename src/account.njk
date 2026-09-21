@@ -1,0 +1,126 @@
+---
+layout: layouts/base.njk
+title: My Account
+description: Manage your Biltong Bites profile, view orders, and access administrative tools.
+---
+
+<section class="container account-page">
+  <div id="account-loading" class="admin-loading">
+    <p>Loading your account details...</p>
+  </div>
+
+  <div id="account-content" style="display: none;">
+    <!-- Profile & Actions Header -->
+    <header class="account-header-card">
+      <div class="account-profile-info">
+        <div class="account-avatar" id="user-avatar">👤</div>
+        <div>
+          <div class="account-name-badge-row">
+            <h1 id="user-display-name">My Account</h1>
+            <span id="user-role-badge" class="badge">Customer</span>
+          </div>
+          <p class="account-email" id="user-display-email">user@example.com</p>
+        </div>
+      </div>
+      <div class="account-header-actions">
+        <button class="btn btn-ghost" id="logout-btn">Log Out</button>
+      </div>
+    </header>
+
+    <!-- Admin / Staff Access Panel (Visible only if role is 'owner' or 'staff') -->
+    <section id="staff-admin-card" class="account-section-card admin-portal-card" style="display: none;">
+      <div class="admin-portal-header">
+        <div>
+          <span class="section-tag">Staff Portal</span>
+          <h2>Store Management</h2>
+          <p>You have authorized administrative access to view orders, update fulfillment statuses, and manage store data.</p>
+        </div>
+        <div>
+          <a href="/admin/" class="btn btn-primary btn-lg">Open Admin Dashboard →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Owner Account Management Panel (Visible only if role is 'owner') -->
+    <section id="owner-management-card" class="account-section-card" style="display: none;">
+      <div class="section-title-row">
+        <div>
+          <span class="section-tag">Owner Controls</span>
+          <h2>User & Staff Management</h2>
+          <p>View all accounts, grant or revoke staff access, rename users, reset passwords, or remove accounts.</p>
+        </div>
+        <button class="btn btn-ghost" id="refresh-users-btn">↻ Refresh Users</button>
+      </div>
+
+      <div id="owner-alert" class="alert" style="display: none;"></div>
+
+      <div class="admin-table-container" style="margin-top: 1.5rem;">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Registered</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table-body">
+            <!-- Populated via account.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Customer Past Orders -->
+    <section class="account-section-card">
+      <div class="section-title-row">
+        <div>
+          <span class="section-tag">Order History</span>
+          <h2>My Orders</h2>
+          <p>Review current and past orders linked to your account email.</p>
+        </div>
+        <a href="/#products" class="btn btn-ghost">Order More Biltong</a>
+      </div>
+
+      <div id="orders-container" style="margin-top: 1.5rem;">
+        <!-- Populated via account.js -->
+      </div>
+    </section>
+  </div>
+</section>
+
+<!-- Modal for Password Reset / Rename -->
+<div id="edit-user-modal" class="modal-backdrop" style="display: none;">
+  <div class="modal-box">
+    <h3 id="modal-title">Edit User</h3>
+    <div id="modal-alert" class="alert alert-danger" style="display: none;"></div>
+    
+    <form id="modal-form">
+      <input type="hidden" id="modal-user-id" />
+      <input type="hidden" id="modal-action-type" />
+
+      <div id="modal-rename-fields" style="display: none;">
+        <label>
+          <span>Full Name</span>
+          <input type="text" id="modal-new-name" />
+        </label>
+      </div>
+
+      <div id="modal-password-fields" style="display: none;">
+        <label>
+          <span>New Password (min 6 chars)</span>
+          <input type="password" id="modal-new-password" minlength="6" />
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="modal-submit-btn">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/assets/scripts/account.js"></script>

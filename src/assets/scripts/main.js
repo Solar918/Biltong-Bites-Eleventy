@@ -694,4 +694,42 @@
     });
   })();
 
+  // ==========================================================================
+  // Header Account Status Controller
+  // ==========================================================================
+  (async function checkAuthStatus() {
+    const accountLink = document.getElementById('nav-account-link');
+    if (!accountLink) return;
+
+    try {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+
+      if (data.authenticated && data.user) {
+        accountLink.textContent = data.user.name.split(' ')[0] || 'Account';
+        accountLink.title = `Signed in as ${data.user.email} (${data.user.role})`;
+        accountLink.setAttribute('aria-label', `Signed in as ${data.user.name}`);
+        if (data.user.role === 'owner' || data.user.role === 'staff') {
+          accountLink.innerHTML = `${escapeHtml(data.user.name.split(' ')[0])} <span class="badge badge-sm" style="font-size:0.65rem;vertical-align:middle;">${data.user.role.toUpperCase()}</span>`;
+        }
+      } else {
+        accountLink.textContent = 'Sign In';
+        accountLink.href = '/login/';
+      }
+    } catch (_e) {
+      // Fallback
+    }
+  })();
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>"']/g, m => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;',
+    })[m]);
+  }
+
 })();

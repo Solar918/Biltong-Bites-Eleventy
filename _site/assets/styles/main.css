@@ -1710,3 +1710,252 @@ input:focus, textarea:focus, select:focus {
     flex-direction: column;
   }
 }
+
+/* ==========================================================================
+   15. Auth & Account Pages
+   ========================================================================== */
+.auth-page {
+  padding: 5rem 1rem 7rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 480px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 1.1rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.auth-tab:hover {
+  color: var(--text);
+}
+
+.auth-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+  background: var(--surface);
+}
+
+.auth-panel {
+  padding: 2.5rem;
+}
+
+.auth-panel h2 {
+  font-size: 2.4rem;
+  margin-top: 0;
+  margin-bottom: 0.35rem;
+}
+
+.auth-subtitle {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 1.75rem;
+}
+
+.btn-block {
+  width: 100%;
+  display: block;
+  text-align: center;
+  padding: 0.9rem 1.5rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+/* Account Dashboard */
+.account-page {
+  padding: 4rem 1rem 7rem;
+}
+
+.account-header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.account-profile-info {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.account-avatar {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  border: 2px solid var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+
+.account-name-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.account-name-badge-row h1 {
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.account-email {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.account-section-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 2rem;
+}
+
+.section-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.25rem;
+}
+
+.section-title-row h2 {
+  font-size: 2.2rem;
+  margin: 0.2rem 0;
+}
+
+.section-title-row p {
+  color: var(--muted);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* Staff & Owner Portal Cards */
+.admin-portal-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 12%, var(--surface)) 0%, var(--surface) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
+}
+
+.admin-portal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.admin-portal-header h2 {
+  font-size: 2.4rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.admin-portal-header p {
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 60ch;
+}
+
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+}
+
+/* Badges */
+.badge-owner {
+  background: color-mix(in srgb, #9333ea 20%, transparent);
+  color: #c084fc;
+  border: 1px solid #9333ea;
+}
+
+.badge-staff {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.badge-sm {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.45rem;
+}
+
+/* Modal Window */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-box h3 {
+  font-size: 1.8rem;
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+  color: var(--accent);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+

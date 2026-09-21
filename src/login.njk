@@ -1,0 +1,74 @@
+---
+layout: layouts/base.njk
+title: Customer & Staff Account
+description: Sign in or create an account for Biltong Bites
+---
+
+<section class="container auth-page">
+  <div class="auth-card">
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login">Sign In</button>
+      <button class="auth-tab" id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register">Register</button>
+    </div>
+
+    <!-- Sign In Panel -->
+    <div class="auth-panel" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+      <h2>Welcome Back</h2>
+      <p class="auth-subtitle">Sign in to view your orders, account details, and staff tools.</p>
+
+      <div id="login-alert" class="alert alert-danger" style="display: none;"></div>
+
+      <form id="login-form">
+        <label>
+          <span>Email Address</span>
+          <input type="email" id="login-email" name="email" required autocomplete="email" placeholder="you@example.co.nz" />
+        </label>
+
+        <label>
+          <span>Password</span>
+          <input type="password" id="login-password" name="password" required autocomplete="current-password" placeholder="••••••••" />
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn">
+          Sign In
+        </button>
+      </form>
+    </div>
+
+    <!-- Register Panel -->
+    <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register" style="display: none;">
+      <h2>Create an Account</h2>
+      <p class="auth-subtitle">Track orders, manage details, and save your information.</p>
+
+      <div id="register-alert" class="alert alert-danger" style="display: none;"></div>
+
+      <form id="register-form">
+        <label>
+          <span>Full Name</span>
+          <input type="text" id="reg-name" name="name" required autocomplete="name" placeholder="John Doe" />
+        </label>
+
+        <label>
+          <span>Email Address</span>
+          <input type="email" id="reg-email" name="email" required autocomplete="email" placeholder="you@example.co.nz" />
+        </label>
+
+        <label>
+          <span>Password (min. 6 characters)</span>
+          <input type="password" id="reg-password" name="password" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
+        </label>
+
+        <label>
+          <span>Confirm Password</span>
+          <input type="password" id="reg-password-confirm" name="passwordConfirm" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
+        </label>
+
+        <button type="submit" class="btn btn-primary btn-block" id="register-submit-btn">
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<script src="/assets/scripts/login.js"></script>

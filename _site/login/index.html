@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Customer & Staff Account · Biltong Bites</title>
+    <meta name="description" content="Sign in or create an account for Biltong Bites" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/styles/main.css" />
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem('theme');
+          const theme = stored || 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.classList.remove('no-js');
+        } catch (_e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <nav class="container nav">
+        <a class="brand" href="/" aria-label="Biltong Bites home">Biltong Bites</a>
+        <button class="nav-toggle" aria-expanded="false" aria-controls="site-menu">Menu</button>
+        <ul id="site-menu" class="menu">
+          <li><a href="/#products">Products</a></li>
+          <li><a href="/#about">About</a></li>
+          <li><a href="/#contact">Contact</a></li>
+          <li><a href="/account/" class="nav-account-link" id="nav-account-link">Account</a></li>
+          <li>
+            <button id="cart-toggle" type="button" class="cart-toggle" aria-label="View cart" title="View cart">
+              <span class="icon" aria-hidden="true">🛒</span>
+              <span class="cart-count"></span>
+            </button>
+          </li>
+          <li>
+            <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+              <span class="icon" aria-hidden="true">🌙</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="container auth-page">
+        <div class="auth-card">
+          <div class="auth-tabs" role="tablist">
+            <button class="auth-tab active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login">Sign In</button>
+            <button class="auth-tab" id="tab-register" role="tab" aria-selected="false" aria-controls="panel-register">Register</button>
+          </div>
+
+          <!-- Sign In Panel -->
+          <div class="auth-panel" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
+            <h2>Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to view your orders, account details, and staff tools.</p>
+
+            <div id="login-alert" class="alert alert-danger" style="display: none;"></div>
+
+            <form id="login-form">
+              <label>
+                <span>Email Address</span>
+                <input type="email" id="login-email" name="email" required autocomplete="email" placeholder="you@example.co.nz" />
+              </label>
+
+              <label>
+                <span>Password</span>
+                <input type="password" id="login-password" name="password" required autocomplete="current-password" placeholder="••••••••" />
+              </label>
+
+              <button type="submit" class="btn btn-primary btn-block" id="login-submit-btn">
+                Sign In
+              </button>
+            </form>
+          </div>
+
+          <!-- Register Panel -->
+          <div class="auth-panel" id="panel-register" role="tabpanel" aria-labelledby="tab-register" style="display: none;">
+            <h2>Create an Account</h2>
+            <p class="auth-subtitle">Track orders, manage details, and save your information.</p>
+
+            <div id="register-alert" class="alert alert-danger" style="display: none;"></div>
+
+            <form id="register-form">
+              <label>
+                <span>Full Name</span>
+                <input type="text" id="reg-name" name="name" required autocomplete="name" placeholder="John Doe" />
+              </label>
+
+              <label>
+                <span>Email Address</span>
+                <input type="email" id="reg-email" name="email" required autocomplete="email" placeholder="you@example.co.nz" />
+              </label>
+
+              <label>
+                <span>Password (min. 6 characters)</span>
+                <input type="password" id="reg-password" name="password" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
+              </label>
+
+              <label>
+                <span>Confirm Password</span>
+                <input type="password" id="reg-password-confirm" name="passwordConfirm" required minlength="6" autocomplete="new-password" placeholder="••••••••" />
+              </label>
+
+              <button type="submit" class="btn btn-primary btn-block" id="register-submit-btn">
+                Create Account
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <span class="footer-logo">Biltong Bites</span>
+          <p class="footer-desc">Premium South African style dried beef, cured to perfection in New Zealand.</p>
+        </div>
+        <div>
+          <ul class="footer-nav">
+            <li><a href="/#products">Products</a></li>
+            <li><a href="/#about">Our Story</a></li>
+            <li><a href="/#contact">Contact Us</a></li>
+            <li><a href="/cart/">Shopping Cart</a></li>
+            <li><a href="/account/">My Account</a></li>
+          </ul>
+        </div>
+        <div class="footer-meta">
+          <p>© <span data-year>2026</span> Biltong Bites. All rights reserved.</p>
+          <p>Crafted with quality ingredients.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    <script src="/assets/scripts/main.js"></script>
+    <script src="/assets/scripts/login.js"></script>
+  </body>
+</html>

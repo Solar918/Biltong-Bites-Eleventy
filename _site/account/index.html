@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Account · Biltong Bites</title>
+    <meta name="description" content="Manage your Biltong Bites profile, view orders, and access administrative tools." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/styles/main.css" />
+    <script>
+      (function () {
+        try {
+          const stored = localStorage.getItem('theme');
+          const theme = stored || 'dark';
+          document.documentElement.setAttribute('data-theme', theme);
+          document.documentElement.classList.remove('no-js');
+        } catch (_e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header">
+      <nav class="container nav">
+        <a class="brand" href="/" aria-label="Biltong Bites home">Biltong Bites</a>
+        <button class="nav-toggle" aria-expanded="false" aria-controls="site-menu">Menu</button>
+        <ul id="site-menu" class="menu">
+          <li><a href="/#products">Products</a></li>
+          <li><a href="/#about">About</a></li>
+          <li><a href="/#contact">Contact</a></li>
+          <li><a href="/account/" class="nav-account-link" id="nav-account-link">Account</a></li>
+          <li>
+            <button id="cart-toggle" type="button" class="cart-toggle" aria-label="View cart" title="View cart">
+              <span class="icon" aria-hidden="true">🛒</span>
+              <span class="cart-count"></span>
+            </button>
+          </li>
+          <li>
+            <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+              <span class="icon" aria-hidden="true">🌙</span>
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <main id="main" tabindex="-1">
+      <section class="container account-page">
+        <div id="account-loading" class="admin-loading">
+          <p>Loading your account details...</p>
+        </div>
+
+        <div id="account-content" style="display: none;">
+          <!-- Profile & Actions Header -->
+          <header class="account-header-card">
+            <div class="account-profile-info">
+              <div class="account-avatar" id="user-avatar">👤</div>
+              <div>
+                <div class="account-name-badge-row">
+                  <h1 id="user-display-name">My Account</h1>
+                  <span id="user-role-badge" class="badge">Customer</span>
+                </div>
+                <p class="account-email" id="user-display-email">user@example.com</p>
+              </div>
+            </div>
+            <div class="account-header-actions">
+              <button class="btn btn-ghost" id="logout-btn">Log Out</button>
+            </div>
+          </header>
+
+          <!-- Admin / Staff Access Panel (Visible only if role is 'owner' or 'staff') -->
+          <section id="staff-admin-card" class="account-section-card admin-portal-card" style="display: none;">
+            <div class="admin-portal-header">
+              <div>
+                <span class="section-tag">Staff Portal</span>
+                <h2>Store Management</h2>
+                <p>You have authorized administrative access to view orders, update fulfillment statuses, and manage store data.</p>
+              </div>
+              <div>
+                <a href="/admin/" class="btn btn-primary btn-lg">Open Admin Dashboard →</a>
+              </div>
+            </div>
+          </section>
+
+          <!-- Owner Account Management Panel (Visible only if role is 'owner') -->
+          <section id="owner-management-card" class="account-section-card" style="display: none;">
+            <div class="section-title-row">
+              <div>
+                <span class="section-tag">Owner Controls</span>
+                <h2>User & Staff Management</h2>
+                <p>View all accounts, grant or revoke staff access, rename users, reset passwords, or remove accounts.</p>
+              </div>
+              <button class="btn btn-ghost" id="refresh-users-btn">↻ Refresh Users</button>
+            </div>
+
+            <div id="owner-alert" class="alert" style="display: none;"></div>
+
+            <div class="admin-table-container" style="margin-top: 1.5rem;">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Registered</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body">
+                  <!-- Populated via account.js -->
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- Customer Past Orders -->
+          <section class="account-section-card">
+            <div class="section-title-row">
+              <div>
+                <span class="section-tag">Order History</span>
+                <h2>My Orders</h2>
+                <p>Review current and past orders linked to your account email.</p>
+              </div>
+              <a href="/#products" class="btn btn-ghost">Order More Biltong</a>
+            </div>
+
+            <div id="orders-container" style="margin-top: 1.5rem;">
+              <!-- Populated via account.js -->
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Modal for Password Reset / Rename -->
+      <div id="edit-user-modal" class="modal-backdrop" style="display: none;">
+        <div class="modal-box">
+          <h3 id="modal-title">Edit User</h3>
+          <div id="modal-alert" class="alert alert-danger" style="display: none;"></div>
+          
+          <form id="modal-form">
+            <input type="hidden" id="modal-user-id" />
+            <input type="hidden" id="modal-action-type" />
+
+            <div id="modal-rename-fields" style="display: none;">
+              <label>
+                <span>Full Name</span>
+                <input type="text" id="modal-new-name" />
+              </label>
+            </div>
+
+            <div id="modal-password-fields" style="display: none;">
+              <label>
+                <span>New Password (min 6 chars)</span>
+                <input type="password" id="modal-new-password" minlength="6" />
+              </label>
+            </div>
+
+            <div class="modal-actions">
+              <button type="button" class="btn btn-ghost" id="modal-cancel-btn">Cancel</button>
+              <button type="submit" class="btn btn-primary" id="modal-submit-btn">Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <span class="footer-logo">Biltong Bites</span>
+          <p class="footer-desc">Premium South African style dried beef, cured to perfection in New Zealand.</p>
+        </div>
+        <div>
+          <ul class="footer-nav">
+            <li><a href="/#products">Products</a></li>
+            <li><a href="/#about">Our Story</a></li>
+            <li><a href="/#contact">Contact Us</a></li>
+            <li><a href="/cart/">Shopping Cart</a></li>
+            <li><a href="/account/">My Account</a></li>
+          </ul>
+        </div>
+        <div class="footer-meta">
+          <p>© <span data-year>2026</span> Biltong Bites. All rights reserved.</p>
+          <p>Crafted with quality ingredients.</p>
+        </div>
+      </div>
+    </footer>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    <script src="/assets/scripts/main.js"></script>
+    <script src="/assets/scripts/account.js"></script>
+  </body>
+</html>

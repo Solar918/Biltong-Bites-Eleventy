@@ -27,6 +27,10 @@ import base64
 import re
 from email.message import EmailMessage
 from datetime import datetime
+import hashlib
+import uuid
+from http import cookies
+from urllib.parse import urlparse, parse_qs
 
 # ==============================================================================
 # Configuration & Constants
@@ -76,6 +80,30 @@ def init_db():
             status TEXT DEFAULT 'Pending',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY(customer_id) REFERENCES customers(id)
+        )
+    ''')
+
+    # Create users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            name TEXT NOT NULL,
+            password_hash TEXT NOT NULL,
+            salt TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'customer',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    # Create sessions table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS sessions (
+            id TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            expires_at INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         )
     ''')
     conn.commit()
@@ -163,8 +191,56 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(json.dumps(data).encode('utf-8'))
 
-    def check_auth(self):
-        """Validates HTTP Basic Authentication credentials for admin endpoints."""
+    def get_cookie(self, name):
+        cookie_header = self.headers.get('Cookie')
+        if not cookie_header:
+            return None
+        c = cookies.SimpleCookie()
+        try:
+            c.load(cookie_header)
+            if name in c:
+                return c[name].value
+        except Exception:
+            pass
+        return None
+
+    def get_session_user(self):
+        """Returns the logged-in user dict or None if invalid/expired session."""
+        session_id = self.get_cookie('bb_session')
+        if not session_id:
+            return None
+        now_ms = int(datetime.now().timestamp() * 1000)
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT users.id, users.email, users.name, users.role
+                FROM sessions
+                JOIN users ON sessions.user_id = users.id
+                WHERE sessions.id = ? AND sessions.expires_at > ?
+            ''', (session_id, now_ms))
+            row = cursor.fetchone()
+            conn.close()
+            return dict(row) if row else None
+        except Exception:
+            return None
+
+    def check_auth(self, require_owner=False):
+        """Validates session cookie or HTTP Basic Auth for admin endpoints."""
+        user = self.get_session_user()
+        if user:
+            if require_owner:
+                if user.get('role') == 'owner':
+                    return True
+                self.send_json(403, {'error': 'Forbidden: Owner role required.'})
+                return False
+            if user.get('role') in ('owner', 'staff'):
+                return True
+            self.send_json(403, {'error': 'Forbidden: Staff or owner permissions required.'})
+            return False
+
+        # Fallback Basic Auth check
         auth_header = self.headers.get('Authorization')
         if auth_header:
             parts = auth_header.split(' ', 1)
@@ -182,20 +258,95 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_response(401)
         self.send_header('WWW-Authenticate', 'Basic realm="Biltong Bites Admin Access"')
         self.end_headers()
-        self.wfile.write(b"Unauthorized access. Please provide valid admin credentials.")
+        self.wfile.write(b"Unauthorized access. Please provide valid admin credentials or log in.")
         return False
 
-    # --------------------------------------------------------------------------
-    # GET Requests
-    # --------------------------------------------------------------------------
     def do_GET(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        # Handle /api/auth/me
+        if path == '/api/auth/me':
+            user = self.get_session_user()
+            if not user:
+                self.send_json(200, {'authenticated': False, 'user': None, 'orders': []})
+                return
+            
+            # Fetch orders for this email
+            orders = []
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute('''
+                    SELECT orders.* 
+                    FROM orders 
+                    JOIN customers ON orders.customer_id = customers.id 
+                    WHERE customers.email = ?
+                    ORDER BY orders.id DESC
+                ''', (user['email'],))
+                for row in cursor.fetchall():
+                    od = dict(row)
+                    try:
+                        od['cart'] = json.loads(od['cart'])
+                    except Exception:
+                        od['cart'] = []
+                    orders.append(od)
+                conn.close()
+            except Exception:
+                pass
+
+            self.send_json(200, {
+                'authenticated': True,
+                'user': {
+                    'id': user['id'],
+                    'email': user['email'],
+                    'name': user['name'],
+                    'role': user['role'],
+                    'canAccessAdmin': user['role'] in ('owner', 'staff'),
+                    'isOwner': user['role'] == 'owner',
+                },
+                'orders': orders,
+            })
+            return
+
+        # Handle /api/admin/users (Owner only)
+        if path == '/api/admin/users':
+            if not self.check_auth(require_owner=True):
+                return
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute('SELECT id, email, name, role, created_at FROM users ORDER BY id ASC')
+                users = [dict(row) for row in cursor.fetchall()]
+                conn.close()
+                self.send_json(200, {'users': users})
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+            return
+
         # Admin authentication guard
-        if self.path.startswith('/admin') or self.path.startswith('/api/admin'):
+        if path.startswith('/admin') or path.startswith('/api/admin'):
+            user = self.get_session_user()
+            if user and user.get('role') == 'customer':
+                # Block customer with 403
+                self.send_response(403)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.end_headers()
+                self.wfile.write(b"<h1>403 Forbidden</h1><p>Customer accounts cannot access Admin area.</p><p><a href='/account/'>Return to My Account</a></p>")
+                return
             if not self.check_auth():
+                if path.startswith('/admin'):
+                    # Redirect to login
+                    self.send_response(302)
+                    self.send_header('Location', '/login/?redirect=/admin/')
+                    self.end_headers()
+                    return
                 return
 
         # API: Get admin dashboard data (Customers and Orders)
-        if self.path == '/api/admin/data':
+        if path == '/api/admin/data':
             try:
                 conn = sqlite3.connect(DB_PATH)
                 conn.row_factory = sqlite3.Row
@@ -231,14 +382,43 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
     # DELETE Requests (Admin operations)
     # --------------------------------------------------------------------------
     def do_DELETE(self):
-        if self.path.startswith('/api/admin'):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        # Handle user deletion: /api/admin/users?userId=X
+        if path == '/api/admin/users':
+            if not self.check_auth(require_owner=True):
+                return
+            query = parse_qs(parsed.query)
+            user_ids = query.get('userId')
+            if not user_ids:
+                self.send_json(400, {'error': 'userId required.'})
+                return
+            target_id = int(user_ids[0])
+            current_user = self.get_session_user()
+            if current_user and target_id == current_user['id']:
+                self.send_json(400, {'error': 'Cannot delete your own account.'})
+                return
+            try:
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute('DELETE FROM sessions WHERE user_id = ?', (target_id,))
+                cursor.execute('DELETE FROM users WHERE id = ?', (target_id,))
+                conn.commit()
+                conn.close()
+                self.send_json(200, {'success': True})
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+            return
+
+        if path.startswith('/api/admin'):
             if not self.check_auth():
                 return
 
             # Delete single order
-            if self.path.startswith('/api/admin/orders/'):
+            if path.startswith('/api/admin/orders/'):
                 try:
-                    order_id = self.path.split('/')[-1]
+                    order_id = path.split('/')[-1]
                     conn = sqlite3.connect(DB_PATH)
                     cursor = conn.cursor()
                     cursor.execute('DELETE FROM orders WHERE id = ?', (order_id,))
@@ -277,9 +457,211 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
             return
 
     # --------------------------------------------------------------------------
-    # POST Requests (Orders, Contact, Admin updates)
+    # POST Requests (Auth, Orders, Contact, Admin updates)
     # --------------------------------------------------------------------------
     def do_POST(self):
+        parsed = urlparse(self.path)
+        path = parsed.path
+
+        # /api/auth/register
+        if path == '/api/auth/register':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                name = (data.get('name') or '').strip()
+                email = (data.get('email') or '').strip().lower()
+                password = data.get('password') or ''
+
+                if not name or not email or len(password) < 6:
+                    self.send_json(400, {'error': 'Valid name, email, and password (min 6 chars) required.'})
+                    return
+
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+                if cursor.fetchone():
+                    conn.close()
+                    self.send_json(409, {'error': 'An account with that email already exists.'})
+                    return
+
+                cursor.execute('SELECT COUNT(*) FROM users')
+                count = cursor.fetchone()[0]
+                admin_user = (os.environ.get('ADMIN_USERNAME') or 'admin').lower()
+                role = 'owner' if count == 0 or email == admin_user else 'customer'
+
+                salt = uuid.uuid4().hex
+                # Use PBKDF2 HMAC SHA-256
+                pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
+
+                cursor.execute('INSERT INTO users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)',
+                               (email, name, pwd_hash, salt, role))
+                user_id = cursor.lastrowid
+
+                # Create session
+                session_id = str(uuid.uuid4())
+                expires_at = int((datetime.now().timestamp() + 30 * 86400) * 1000)
+                cursor.execute('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
+                               (session_id, user_id, expires_at))
+                conn.commit()
+                conn.close()
+
+                self.send_response(201)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Set-Cookie', f'bb_session={session_id}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'user': {'id': user_id, 'email': email, 'name': name, 'role': role}}).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+                return
+
+        # /api/auth/login
+        if path == '/api/auth/login':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                email = (data.get('email') or '').strip().lower()
+                password = data.get('password') or ''
+
+                if not email or not password:
+                    self.send_json(400, {'error': 'Email and password required.'})
+                    return
+
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+                user = cursor.fetchone()
+
+                # Fallback: auto-provision owner if matches env vars
+                admin_user = (os.environ.get('ADMIN_USERNAME') or 'admin').lower()
+                admin_pass = os.environ.get('ADMIN_PASSWORD') or 'biltong'
+                if not user and email == admin_user and password == admin_pass:
+                    salt = uuid.uuid4().hex
+                    pwd_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
+                    cursor.execute('INSERT INTO users (email, name, password_hash, salt, role) VALUES (?, ?, ?, ?, ?)',
+                                   (email, 'Site Owner', pwd_hash, salt, 'owner'))
+                    conn.commit()
+                    cursor.execute('SELECT * FROM users WHERE email = ?', (email,))
+                    user = cursor.fetchone()
+
+                if not user:
+                    conn.close()
+                    self.send_json(401, {'error': 'Invalid email or password.'})
+                    return
+
+                salt = user['salt']
+                expected_hash = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
+                if expected_hash != user['password_hash']:
+                    conn.close()
+                    self.send_json(401, {'error': 'Invalid email or password.'})
+                    return
+
+                # Create session
+                session_id = str(uuid.uuid4())
+                expires_at = int((datetime.now().timestamp() + 30 * 86400) * 1000)
+                cursor.execute('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)',
+                               (session_id, user['id'], expires_at))
+                conn.commit()
+                conn.close()
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
+                self.send_header('Set-Cookie', f'bb_session={session_id}; Path=/; Max-Age=2592000; HttpOnly; SameSite=Lax')
+                self.end_headers()
+                self.wfile.write(json.dumps({'success': True, 'user': {'id': user['id'], 'email': user['email'], 'name': user['name'], 'role': user['role']}}).encode('utf-8'))
+                return
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+                return
+
+        # /api/auth/logout
+        if path == '/api/auth/logout':
+            session_id = self.get_cookie('bb_session')
+            if session_id:
+                try:
+                    conn = sqlite3.connect(DB_PATH)
+                    cursor = conn.cursor()
+                    cursor.execute('DELETE FROM sessions WHERE id = ?', (session_id,))
+                    conn.commit()
+                    conn.close()
+                except Exception:
+                    pass
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Set-Cookie', 'bb_session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax')
+            self.end_headers()
+            self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
+            return
+
+        # /api/admin/users POST actions (update_role, rename, reset_password)
+        if path == '/api/admin/users':
+            if not self.check_auth(require_owner=True):
+                return
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                target_user_id = int(data.get('userId', 0))
+                action = data.get('action')
+
+                conn = sqlite3.connect(DB_PATH)
+                cursor = conn.cursor()
+                cursor.execute('SELECT * FROM users WHERE id = ?', (target_user_id,))
+                target_user = cursor.fetchone()
+                if not target_user:
+                    conn.close()
+                    self.send_json(404, {'error': 'User not found.'})
+                    return
+
+                if action == 'update_role':
+                    new_role = data.get('role')
+                    if new_role not in ('customer', 'staff'):
+                        conn.close()
+                        self.send_json(400, {'error': 'Invalid role.'})
+                        return
+                    cursor.execute('UPDATE users SET role = ? WHERE id = ?', (new_role, target_user_id))
+                    conn.commit()
+                    conn.close()
+                    self.send_json(200, {'success': True, 'message': f'Role updated to {new_role}.'})
+                    return
+
+                elif action == 'rename':
+                    new_name = (data.get('name') or '').strip()
+                    if not new_name:
+                        conn.close()
+                        self.send_json(400, {'error': 'Name required.'})
+                        return
+                    cursor.execute('UPDATE users SET name = ? WHERE id = ?', (new_name, target_user_id))
+                    conn.commit()
+                    conn.close()
+                    self.send_json(200, {'success': True, 'message': 'User name updated.'})
+                    return
+
+                elif action == 'reset_password':
+                    new_pwd = data.get('newPassword') or ''
+                    if len(new_pwd) < 6:
+                        conn.close()
+                        self.send_json(400, {'error': 'Password min 6 chars.'})
+                        return
+                    salt = uuid.uuid4().hex
+                    pwd_hash = hashlib.pbkdf2_hmac('sha256', new_pwd.encode('utf-8'), salt.encode('utf-8'), 100000).hex()
+                    cursor.execute('UPDATE users SET password_hash = ?, salt = ? WHERE id = ?', (pwd_hash, salt, target_user_id))
+                    cursor.execute('DELETE FROM sessions WHERE user_id = ?', (target_user_id,))
+                    conn.commit()
+                    conn.close()
+                    self.send_json(200, {'success': True, 'message': 'Password reset successfully.'})
+                    return
+
+                conn.close()
+                self.send_json(400, {'error': 'Invalid action.'})
+                return
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+                return
+
         # Admin complete order action
         if self.path.startswith('/api/admin'):
             if not self.check_auth():
