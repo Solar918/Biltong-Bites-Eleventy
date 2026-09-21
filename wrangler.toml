@@ -1,3 +1,9 @@
 name = "biltong-bites-eleventy"
 compatibility_date = "2024-09-01"
 pages_build_output_dir = "_site"
+
+# Cloudflare D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "biltong-bites-db"
+database_id = "af13888a-2f8a-441c-b56d-0134748b95f9"
