@@ -1,59 +1,85 @@
 ---
 layout: layouts/base.njk
-title: Checkout & Payment Details
-description: Complete your details to receive payment instructions for your Biltong Bites order.
+title: Secure Checkout
+description: Complete your order for authentic South African air-cured meats.
 ---
 
-<article class="container checkout-page">
-  <header class="checkout-page-header">
-    <h1>Complete Your Order</h1>
-    <p class="checkout-subtitle">Enter your contact details below to reserve your handcrafted biltong.</p>
+<article class="max-w-5xl mx-auto px-4 sm:px-6 py-12 md:py-16">
+  <header class="mb-8">
+    <div class="text-xs font-bold uppercase tracking-widest text-olive mb-1">Cold-Chain Dispatch</div>
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark">Complete Your Provision Order</h1>
+    <p class="text-xs sm:text-sm text-slate-dark/70 mt-1">Enter your details for priority butchery dispatch and tracking updates.</p>
   </header>
 
-  <div class="checkout-grid">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
     <!-- Form Side -->
-    <div class="checkout-form-card">
-      <h2>1. Contact & Pickup Details</h2>
-      <form id="checkout-form">
-        <div class="form-row">
-          <label for="name">
-            <span>First and Last Name</span>
-            <input type="text" id="name" name="name" required placeholder="e.g. John Doe" autocomplete="name" />
-          </label>
-          <label for="phone">
-            <span>Mobile Phone Number</span>
-            <input type="tel" id="phone" name="phone" required placeholder="e.g. 021 000 0000" autocomplete="tel" />
-          </label>
+    <div class="lg:col-span-7 bg-white p-6 sm:p-8 rounded-micro border border-brand-border shadow-card">
+      <h2 class="font-serif text-xl font-bold text-slate-dark mb-4 pb-2 border-b border-brand-border">
+        1. Contact &amp; Shipping Details
+      </h2>
+
+      <form id="checkout-form" class="space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="name" class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Full Name</label>
+            <input type="text" id="name" name="name" required placeholder="e.g. Ethan Ross" autocomplete="name" class="w-full bg-parchment/60 border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika" />
+          </div>
+          <div>
+            <label for="phone" class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Mobile Phone</label>
+            <input type="tel" id="phone" name="phone" required placeholder="e.g. +44 7496 170741" autocomplete="tel" class="w-full bg-parchment/60 border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika" />
+          </div>
         </div>
 
-        <label for="email">
-          <span>Email Address (for order confirmation & bank transfer details)</span>
-          <input type="email" id="email" name="email" required placeholder="e.g. john@example.com" autocomplete="email" />
-        </label>
-
-        <div class="checkout-pickup-notice">
-          <strong>📍 Pickup Location:</strong>
-          <p>Orders are fulfilled at Long Bay College, Auckland. You will receive an email confirmation with bank details to complete payment.</p>
+        <div>
+          <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="e.g. orders@example.com" autocomplete="email" class="w-full bg-parchment/60 border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika" />
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" id="place-order-btn">
-          Place Order & Receive Payment Info
+        <div class="p-4 bg-parchment rounded-micro border border-brand-border text-xs space-y-1 text-slate-dark/80">
+          <div class="font-bold text-slate-dark flex items-center gap-1.5">
+            <svg class="w-4 h-4 text-olive" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            Refrigerated Cold-Chain Packaging Included
+          </div>
+          <p>Orders dispatched within 24 hours via tracked post in thermal insulated pouches with freshness assurance.</p>
+        </div>
+
+        <button type="submit" class="w-full py-4 bg-paprika hover:bg-paprika-hover text-white text-xs font-bold uppercase tracking-wider rounded-micro shadow-card transition" id="place-order-btn">
+          Place Order &amp; Confirm Provisions
         </button>
       </form>
-      <div id="email-preview" class="email-preview"></div>
+      <div id="email-preview" class="email-preview mt-4"></div>
     </div>
 
     <!-- Summary Side -->
-    <div class="checkout-summary-card">
-      <h2>2. Order Summary</h2>
-      <div id="checkout-order-items" class="checkout-items-list">
-        <!-- Dynamically rendered -->
+    <div class="lg:col-span-5 bg-white p-6 sm:p-8 rounded-micro border border-brand-border shadow-card">
+      <h2 class="font-serif text-xl font-bold text-slate-dark mb-4 pb-2 border-b border-brand-border">
+        2. Order Summary
+      </h2>
+
+      <div id="checkout-order-items" class="divide-y divide-brand-border/60 text-xs mb-4">
+        <!-- Dynamically rendered by main.js -->
       </div>
-      <div class="checkout-total-row">
-        <span>Total Due:</span>
-        <span id="checkout-total-amount">$0.00</span>
+
+      <div class="pt-3 border-t border-brand-border space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span class="text-slate-dark/70">Subtotal:</span>
+          <span id="checkout-subtotal-amount" class="font-bold text-slate-dark">£0.00</span>
+        </div>
+        <div class="flex justify-between text-emerald-800">
+          <span>Tracked Shipping:</span>
+          <span class="font-semibold">Calculated at dispatch</span>
+        </div>
+        <div class="flex justify-between text-base font-bold text-slate-dark pt-2 border-t border-brand-border">
+          <span>Total Due:</span>
+          <span id="checkout-total-amount" class="text-paprika">£0.00</span>
+        </div>
       </div>
-      <a href="/cart/" class="btn btn-ghost btn-block" style="margin-top: 1.5rem;">Edit Cart</a>
+
+      <a href="/cart/" class="block text-center mt-6 text-xs font-bold text-slate-dark/60 hover:text-paprika underline">
+        Modify Bag Items
+      </a>
     </div>
+
   </div>
 </article>

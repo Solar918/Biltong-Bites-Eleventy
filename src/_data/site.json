@@ -1,11 +1,12 @@
 {
   "name": "Biltong Bites",
-  "title": "Biltong Bites co",
-  "description": "At Biltong Bites, we’re passionate about crafting premium, tender biltong made with care from start to finish. We hand-make all our biltong using carefully sourced meat from animals raised with less stress—resulting in a naturally more tender and less acidic product. The result? A flavor-packed snack that’s high in protein, low in additives, and full of goodness. Whether you’re after a quick bite or a wholesome treat, Biltong Bites delivers quality you can taste.",
-  "url": "https://biltongbites.koines.org",
+  "title": "Premium Artisanal South African Air-Dried Meats",
+  "description": "100% Pasture-Raised Prime Beef, slow air-cured with coarse roasted coriander and vinegar. Zero added sugar, strictly Kosher certified, 52g protein per 100g.",
+  "url": "https://biltongbites.org",
+  "phone": "+44 (0) 7496 170741",
   "author": {
     "name": "Biltong Bites",
-    "email": "biltongbites25@gmail.com",
+    "email": "orders@biltongbites.org",
     "github": "Solar918/Biltong-Bites-Eleventy"
   }
 }

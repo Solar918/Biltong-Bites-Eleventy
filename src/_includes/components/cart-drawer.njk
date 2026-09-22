@@ -1,0 +1,83 @@
+<!-- Slide-Out Interactive Ajax Cart Drawer -->
+<div id="cart-drawer-container" class="relative z-50 pointer-events-none" aria-labelledby="cart-title" role="dialog" aria-modal="true">
+  <div id="cart-backdrop" class="cart-drawer-backdrop fixed inset-0 bg-slate-dark/60 opacity-0 pointer-events-none"></div>
+
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+        
+        <div id="cart-panel" class="cart-drawer-panel pointer-events-auto w-screen max-w-md bg-white border-l border-brand-border shadow-2xl flex flex-col translate-x-full">
+          
+          <div class="p-5 border-b border-brand-border flex items-center justify-between bg-parchment/60">
+            <div class="flex items-center gap-2">
+              <h3 id="cart-title" class="font-serif text-lg font-bold text-slate-dark">Your Provision Bag</h3>
+              <span id="drawer-item-count-badge" class="bg-slate-dark text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0 Items</span>
+            </div>
+            <button id="cart-close-btn" type="button" aria-label="Close cart drawer" class="p-2 text-slate-dark/60 hover:text-slate-dark rounded-micro transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Free Shipping Progress Bar (£50 Limit) -->
+          <div class="p-4 bg-white border-b border-brand-border">
+            <div class="flex justify-between text-xs font-semibold text-slate-dark mb-1.5">
+              <span id="shipping-progress-text">You're only <span class="text-paprika font-bold">£50.00</span> away from Free Tracked Shipping!</span>
+              <span id="shipping-progress-pct" class="text-slate-dark/60">0%</span>
+            </div>
+            <div class="w-full bg-brand-border/60 rounded-full h-2 overflow-hidden">
+              <div id="shipping-progress-bar" class="bg-paprika h-2 rounded-full transition-all duration-300" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Cart Items Container -->
+          <div id="cart-items-list" class="flex-1 overflow-y-auto p-5 space-y-4 divide-y divide-brand-border/60">
+            <!-- Dynamically populated by main.js -->
+          </div>
+
+          <!-- Pre-Purchase Frictionless Add-on (1-Click Upsell Box) -->
+          <div class="p-4 bg-olive/5 border-t border-b border-brand-border">
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="inline-block text-[10px] font-bold text-olive uppercase tracking-wider">Butcher's Quick Add</span>
+                <h4 class="text-xs font-bold text-slate-dark">Add 100g Droëwors Snackstick</h4>
+                <p class="text-[11px] text-slate-dark/70">Pair with your biltong for £7.70</p>
+              </div>
+              <button type="button" id="upsell-btn" onclick="addUpsellItem()" class="px-3 py-1.5 bg-olive hover:bg-olive-hover text-white text-xs font-bold rounded-micro transition shadow-sm">
+                + Add (£7.70)
+              </button>
+            </div>
+          </div>
+
+          <!-- Drawer Footer / Checkout Actions -->
+          <div class="p-5 bg-parchment/70 border-t border-brand-border space-y-4">
+            <div class="space-y-1.5 text-xs text-slate-dark">
+              <div class="flex justify-between">
+                <span class="text-slate-dark/70">Subtotal:</span>
+                <span id="cart-subtotal-text" class="font-bold text-slate-dark text-sm">£0.00</span>
+              </div>
+              <div class="flex justify-between text-emerald-800">
+                <span>Tracked Refrigerated Packaging:</span>
+                <span class="font-bold">Complimentary</span>
+              </div>
+            </div>
+
+            <a href="/checkout/" class="w-full py-4 bg-paprika hover:bg-paprika-hover text-white font-bold text-sm tracking-wide uppercase rounded-micro shadow-card transition flex items-center justify-center gap-2">
+              <span>Proceed to Secure Checkout</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+
+            <div class="flex items-center justify-center gap-2 text-[10px] text-slate-dark/60 font-semibold pt-1">
+              <span class="px-2 py-1 bg-white border border-brand-border rounded">Apple Pay</span>
+              <span class="px-2 py-1 bg-white border border-brand-border rounded">Shop Pay</span>
+              <span class="px-2 py-1 bg-white border border-brand-border rounded">Google Pay</span>
+              <span class="px-2 py-1 bg-white border border-brand-border rounded">Visa / MC</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
