@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="scroll-smooth no-js" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,47 +23,73 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: ['class', '[data-theme="dark"]'],
         theme: {
           extend: {
             colors: {
-              parchment: '#F9F6F0',
-              'slate-dark': '#121212',
-              paprika: '#A83A2A',
-              'paprika-hover': '#8E2F21',
-              olive: '#4A5335',
-              'olive-hover': '#3D452B',
-              'brand-border': '#E5E0D8'
+              parchment: 'var(--bg)',
+              'slate-dark': 'var(--text)',
+              paprika: 'var(--primary)',
+              'paprika-hover': 'var(--primary-hover)',
+              olive: 'var(--accent)',
+              'olive-hover': 'var(--primary)',
+              'brand-border': 'var(--border)'
             },
             fontFamily: {
               serif: ['"Playfair Display"', 'Georgia', 'serif'],
               sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
             },
             borderRadius: {
-              'micro': '5px'
+              'micro': '6px'
             },
             boxShadow: {
-              'subtle': '0 2px 10px rgba(18, 18, 18, 0.04)',
-              'card': '0 4px 20px -2px rgba(18, 18, 18, 0.06)'
+              'subtle': '0 2px 10px rgba(0, 0, 0, 0.05)',
+              'card': '0 4px 20px -2px rgba(0, 0, 0, 0.08)'
             }
           }
         }
       };
     </script>
 
+    <!-- Main Stylesheet for Auth, Account, Admin & Components -->
+    <link rel="stylesheet" href="/assets/styles/main.css?v=5" />
+
+    <script>
+      // Theme boot: check localStorage first, else sync with system default
+      (function () {
+        try {
+          const stored = localStorage.getItem('theme');
+          let theme = stored;
+          if (!theme) {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            theme = systemPrefersDark ? 'dark' : 'light';
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          document.documentElement.classList.remove('no-js');
+        } catch (_e) {}
+      })();
+    </script>
+
     <style>
       body {
-        background-color: #F9F6F0;
-        color: #121212;
+        background-color: var(--bg);
+        color: var(--text);
         font-family: 'Plus Jakarta Sans', sans-serif;
         -webkit-font-smoothing: antialiased;
+        transition: background-color 0.25s ease, color 0.25s ease;
       }
       .font-serif {
         font-family: 'Playfair Display', Georgia, serif;
       }
       ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: #F9F6F0; }
-      ::-webkit-scrollbar-thumb { background: #D8D2C5; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #B8B0A0; }
+      ::-webkit-scrollbar-track { background: var(--bg); }
+      ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
       .cart-drawer-backdrop {
         transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
@@ -73,7 +99,7 @@
       }
     </style>
   </head>
-  <body class="bg-parchment text-slate-dark antialiased min-h-screen flex flex-col selection:bg-paprika selection:text-white">
+  <body class="antialiased min-h-screen flex flex-col selection:bg-paprika selection:text-white">
     <a class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:p-3 focus:bg-paprika focus:text-white focus:rounded-micro" href="#main">Skip to content</a>
     
     {% include "components/header.njk" %}

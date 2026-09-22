@@ -2,6 +2,7 @@
  * Biltong Bites - Frontend Client Controller
  * ===========================================
  * Handles:
+ * - Theme toggle (dark/light) with system preference detection and localStorage persistence
  * - Rotating announcement notification banner
  * - Mobile responsive navigation drawer
  * - Product catalog search & sorting
@@ -18,7 +19,53 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   // ==========================================================================
-  // 1. Rotating Announcement Bar
+  // 1. Theme Management (System Sync + Toggle)
+  // ==========================================================================
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const themeToggleIcon = themeToggleBtn?.querySelector('.theme-toggle-icon');
+
+  function updateThemeUI(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      if (themeToggleIcon) themeToggleIcon.textContent = '☀️';
+    } else {
+      document.documentElement.classList.remove('dark');
+      if (themeToggleIcon) themeToggleIcon.textContent = '🌙';
+    }
+  }
+
+  function getActiveTheme() {
+    const stored = localStorage.getItem('theme');
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  // Initialize
+  const currentTheme = getActiveTheme();
+  updateThemeUI(currentTheme);
+
+  // Listen for system theme changes if user hasn't explicitly set preference
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        updateThemeUI(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+
+  // Toggle button handler
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const active = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = active === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      updateThemeUI(next);
+    });
+  }
+
+  // ==========================================================================
+  // 2. Rotating Announcement Bar
   // ==========================================================================
   const announcements = [
     "Free Pickup at Long Bay College • 100% NZ Low-Stress Beef",
@@ -39,7 +86,7 @@
   }
 
   // ==========================================================================
-  // 2. Mobile Navigation Menu Toggle
+  // 3. Mobile Navigation Menu Toggle
   // ==========================================================================
   const mobileMenuBtn = document.getElementById('mobile-menu-btn');
   const mobileMenu = document.getElementById('mobile-menu');
@@ -50,7 +97,7 @@
   }
 
   // ==========================================================================
-  // 3. Cart State Management (LocalStorage with 48h TTL)
+  // 4. Cart State Management (LocalStorage with 48h TTL)
   // ==========================================================================
   const CART_KEY = 'biltongCart';
   const CART_TTL = 48 * 60 * 60 * 1000;
@@ -77,7 +124,7 @@
   };
 
   // ==========================================================================
-  // 4. Cart Drawer Controller
+  // 5. Cart Drawer Controller
   // ==========================================================================
   const cartTrigger = document.getElementById('cart-drawer-trigger');
   const cartCloseBtn = document.getElementById('cart-close-btn');
@@ -266,7 +313,7 @@
   };
 
   // ==========================================================================
-  // 5. Catalog Search & Filter
+  // 6. Catalog Search & Filter
   // ==========================================================================
   const searchInput = document.getElementById('product-search');
   const sortSelect = document.getElementById('product-sort');
@@ -318,7 +365,7 @@
   }
 
   // ==========================================================================
-  // 6. Accordions
+  // 7. Accordions
   // ==========================================================================
   const accordionToggles = $$('.accordion-toggle');
   accordionToggles.forEach(toggle => {
@@ -339,7 +386,7 @@
   });
 
   // ==========================================================================
-  // 7. Contact & Checkout Forms
+  // 8. Contact & Checkout Forms
   // ==========================================================================
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
