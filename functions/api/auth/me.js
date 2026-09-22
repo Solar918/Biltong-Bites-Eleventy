@@ -43,6 +43,7 @@ export async function onRequestGet(context) {
       id: user.id,
       email: user.email,
       name: user.name,
+      phone: user.phone || '',
       role: user.role,
       canAccessAdmin: user.role === 'owner' || user.role === 'staff',
       isOwner: user.role === 'owner',

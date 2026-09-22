@@ -89,12 +89,18 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             name TEXT NOT NULL,
+            phone TEXT DEFAULT '',
             password_hash TEXT NOT NULL,
             salt TEXT NOT NULL,
             role TEXT NOT NULL DEFAULT 'customer',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
+    # Migration: Add phone column if it doesn't exist
+    try:
+        cursor.execute('ALTER TABLE users ADD COLUMN phone TEXT DEFAULT ""')
+    except Exception:
+        pass
 
     # Create sessions table
     cursor.execute('''
@@ -215,7 +221,7 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
             conn.row_factory = sqlite3.Row
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT users.id, users.email, users.name, users.role
+                SELECT users.id, users.email, users.name, users.phone, users.role
                 FROM sessions
                 JOIN users ON sessions.user_id = users.id
                 WHERE sessions.id = ? AND sessions.expires_at > ?
@@ -302,6 +308,7 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
                     'id': user['id'],
                     'email': user['email'],
                     'name': user['name'],
+                    'phone': user.get('phone') or '',
                     'role': user['role'],
                     'canAccessAdmin': user['role'] in ('owner', 'staff'),
                     'isOwner': user['role'] == 'owner',
@@ -595,6 +602,75 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(json.dumps({'success': True}).encode('utf-8'))
             return
+
+        # /api/auth/update_profile
+        if path == '/api/auth/update_profile':
+            user = self.get_session_user()
+            if not user:
+                self.send_json(401, {'error': 'Unauthorized. Please sign in.'})
+                return
+
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                name = (data.get('name') or '').strip()
+                phone = (data.get('phone') or '').strip()
+                current_password = data.get('currentPassword') or ''
+                new_password = data.get('newPassword') or ''
+
+                if not name:
+                    self.send_json(400, {'error': 'Full name cannot be empty.'})
+                    return
+
+                conn = sqlite3.connect(DB_PATH)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+
+                if new_password:
+                    if len(new_password) < 6:
+                        conn.close()
+                        self.send_json(400, {'error': 'New password must be at least 6 characters.'})
+                        return
+                    if not current_password:
+                        conn.close()
+                        self.send_json(400, {'error': 'Current password is required to set a new password.'})
+                        return
+
+                    cursor.execute('SELECT password_hash, salt FROM users WHERE id = ?', (user['id'],))
+                    row = cursor.fetchone()
+                    expected_hash = hashlib.pbkdf2_hmac('sha256', current_password.encode('utf-8'), row['salt'].encode('utf-8'), 100000).hex()
+                    if expected_hash != row['password_hash']:
+                        conn.close()
+                        self.send_json(400, {'error': 'Current password does not match.'})
+                        return
+
+                    new_salt = uuid.uuid4().hex
+                    new_hash = hashlib.pbkdf2_hmac('sha256', new_password.encode('utf-8'), new_salt.encode('utf-8'), 100000).hex()
+                    cursor.execute('UPDATE users SET name = ?, phone = ?, password_hash = ?, salt = ? WHERE id = ?',
+                                   (name, phone, new_hash, new_salt, user['id']))
+                else:
+                    cursor.execute('UPDATE users SET name = ?, phone = ? WHERE id = ?',
+                                   (name, phone, user['id']))
+
+                conn.commit()
+                conn.close()
+
+                self.send_json(200, {
+                    'success': True,
+                    'message': 'Profile updated successfully!',
+                    'user': {
+                        'id': user['id'],
+                        'email': user['email'],
+                        'name': name,
+                        'phone': phone,
+                        'role': user['role']
+                    }
+                })
+                return
+            except Exception as e:
+                self.send_json(500, {'error': str(e)})
+                return
 
         # /api/admin/users POST actions (update_role, rename, reset_password)
         if path == '/api/admin/users':

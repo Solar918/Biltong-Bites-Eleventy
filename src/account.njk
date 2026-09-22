@@ -27,6 +27,55 @@ description: Manage your Biltong Bites profile, view orders, and access administ
       </div>
     </header>
 
+    <!-- Personal Details / Profile Settings -->
+    <section class="account-section-card">
+      <div class="section-title-row">
+        <div>
+          <span class="section-tag">Profile Details</span>
+          <h2>Your Contact Information</h2>
+          <p>Keep your contact details up to date. These details will automatically auto-fill your order checkout.</p>
+        </div>
+      </div>
+
+      <div id="profile-alert" class="alert" style="display: none; margin-top: 1.25rem;"></div>
+
+      <form id="profile-form" style="margin-top: 1.5rem; max-width: 650px;">
+        <div class="form-row">
+          <label>
+            <span>Full Name</span>
+            <input type="text" id="profile-name" name="name" required placeholder="e.g. John Doe" />
+          </label>
+          <label>
+            <span>Mobile Phone Number</span>
+            <input type="tel" id="profile-phone" name="phone" placeholder="e.g. 021 000 0000" />
+          </label>
+        </div>
+
+        <label>
+          <span>Email Address (cannot be changed)</span>
+          <input type="email" id="profile-email" name="email" disabled style="opacity: 0.7; cursor: not-allowed;" />
+        </label>
+
+        <details class="password-change-details" style="margin-top: 1.25rem; margin-bottom: 1.5rem; border: 1px dashed var(--border); border-radius: var(--radius); padding: 1rem;">
+          <summary style="cursor: pointer; font-weight: 600; color: var(--accent);">Change Password (Optional)</summary>
+          <div style="margin-top: 1rem;">
+            <label>
+              <span>Current Password</span>
+              <input type="password" id="profile-current-password" autocomplete="current-password" placeholder="••••••••" />
+            </label>
+            <label>
+              <span>New Password (min. 6 characters)</span>
+              <input type="password" id="profile-new-password" autocomplete="new-password" minlength="6" placeholder="••••••••" />
+            </label>
+          </div>
+        </details>
+
+        <button type="submit" class="btn btn-primary" id="save-profile-btn">
+          Save Profile Changes
+        </button>
+      </form>
+    </section>
+
     <!-- Admin / Staff Access Panel (Visible only if role is 'owner' or 'staff') -->
     <section id="staff-admin-card" class="account-section-card admin-portal-card" style="display: none;">
       <div class="admin-portal-header">

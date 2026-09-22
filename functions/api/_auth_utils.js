@@ -103,7 +103,7 @@ export async function authenticateSession(request, env) {
   try {
     const now = Date.now();
     const result = await env.DB.prepare(`
-      SELECT users.id, users.email, users.name, users.role, sessions.expires_at
+      SELECT users.id, users.email, users.name, users.phone, users.role, sessions.expires_at
       FROM sessions
       JOIN users ON sessions.user_id = users.id
       WHERE sessions.id = ? AND sessions.expires_at > ?
@@ -117,6 +117,7 @@ export async function authenticateSession(request, env) {
       id: result.id,
       email: result.email,
       name: result.name,
+      phone: result.phone || '',
       role: result.role,
       sessionId,
     };

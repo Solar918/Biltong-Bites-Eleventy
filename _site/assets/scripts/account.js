@@ -49,6 +49,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       userEmailEl.textContent = currentUser.email;
       userRoleBadge.textContent = currentUser.role.toUpperCase();
 
+      // Populate editable profile form fields
+      const profileNameInput = document.getElementById('profile-name');
+      const profilePhoneInput = document.getElementById('profile-phone');
+      const profileEmailInput = document.getElementById('profile-email');
+      if (profileNameInput) profileNameInput.value = currentUser.name || '';
+      if (profilePhoneInput) profilePhoneInput.value = currentUser.phone || '';
+      if (profileEmailInput) profileEmailInput.value = currentUser.email || '';
+
       // Role styling
       if (currentUser.role === 'owner') {
         userRoleBadge.className = 'badge badge-owner';
@@ -78,6 +86,84 @@ document.addEventListener('DOMContentLoaded', async () => {
       loadingDiv.innerHTML = `<div class="alert alert-danger">Error loading account: ${err.message}</div>`;
     }
   }
+
+  // Profile Form Update Handler
+  const profileForm = document.getElementById('profile-form');
+  const profileAlert = document.getElementById('profile-alert');
+  const saveProfileBtn = document.getElementById('save-profile-btn');
+
+  profileForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!profileAlert || !saveProfileBtn) return;
+    profileAlert.style.display = 'none';
+
+    const name = (document.getElementById('profile-name')?.value || '').trim();
+    const phone = (document.getElementById('profile-phone')?.value || '').trim();
+    const currentPassword = document.getElementById('profile-current-password')?.value || '';
+    const newPassword = document.getElementById('profile-new-password')?.value || '';
+
+    if (!name) {
+      profileAlert.className = 'alert alert-danger';
+      profileAlert.textContent = 'Please enter your name.';
+      profileAlert.style.display = 'block';
+      return;
+    }
+
+    if (newPassword && newPassword.length < 6) {
+      profileAlert.className = 'alert alert-danger';
+      profileAlert.textContent = 'New password must be at least 6 characters.';
+      profileAlert.style.display = 'block';
+      return;
+    }
+
+    if (newPassword && !currentPassword) {
+      profileAlert.className = 'alert alert-danger';
+      profileAlert.textContent = 'Please enter your current password to set a new password.';
+      profileAlert.style.display = 'block';
+      return;
+    }
+
+    try {
+      saveProfileBtn.disabled = true;
+      saveProfileBtn.textContent = 'Saving...';
+
+      const res = await fetch('/api/auth/update_profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone, currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        profileAlert.className = 'alert alert-danger';
+        profileAlert.textContent = data.error || 'Failed to update profile.';
+        profileAlert.style.display = 'block';
+        return;
+      }
+
+      // Update local state
+      userNameEl.textContent = name;
+      document.getElementById('profile-current-password').value = '';
+      document.getElementById('profile-new-password').value = '';
+      const passDetails = document.querySelector('.password-change-details');
+      if (passDetails) passDetails.open = false;
+
+      profileAlert.className = 'alert alert-success';
+      profileAlert.textContent = data.message || 'Profile saved successfully!';
+      profileAlert.style.display = 'block';
+
+      setTimeout(() => {
+        profileAlert.style.display = 'none';
+      }, 5000);
+    } catch (err) {
+      profileAlert.className = 'alert alert-danger';
+      profileAlert.textContent = 'Network error: ' + err.message;
+      profileAlert.style.display = 'block';
+    } finally {
+      saveProfileBtn.disabled = false;
+      saveProfileBtn.textContent = 'Save Profile Changes';
+    }
+  });
 
   // 2. Render user's order history
   function renderOrders(orders) {

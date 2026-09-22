@@ -23,7 +23,7 @@ export async function onRequest(context) {
   if (request.method === 'GET') {
     try {
       const usersResult = await env.DB.prepare(`
-        SELECT id, email, name, role, created_at
+        SELECT id, email, name, phone, role, created_at
         FROM users
         ORDER BY id ASC
       `).all();

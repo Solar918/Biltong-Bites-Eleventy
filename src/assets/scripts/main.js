@@ -535,6 +535,41 @@
       return;
     }
 
+    // Auto-fill form if user is signed in
+    (async function autoFillCheckout() {
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        if (data.authenticated && data.user) {
+          const nameInput = document.getElementById('name');
+          const emailInput = document.getElementById('email');
+          const phoneInput = document.getElementById('phone');
+
+          if (nameInput && !nameInput.value && data.user.name) {
+            nameInput.value = data.user.name;
+          }
+          if (emailInput && !emailInput.value && data.user.email) {
+            emailInput.value = data.user.email;
+          }
+          if (phoneInput && !phoneInput.value && data.user.phone) {
+            phoneInput.value = data.user.phone;
+          }
+
+          // Optional notice indicator that details were auto-filled
+          const formCard = document.querySelector('.checkout-form-card');
+          if (formCard && !document.getElementById('autofill-notice')) {
+            const notice = document.createElement('div');
+            notice.id = 'autofill-notice';
+            notice.className = 'alert alert-success';
+            notice.style.marginBottom = '1.25rem';
+            notice.style.fontSize = '0.88rem';
+            notice.innerHTML = `✓ Auto-filled from your account (<strong>${escapeHtml(data.user.email)}</strong>). Feel free to update any field if needed.`;
+            formCard.insertBefore(notice, formCard.querySelector('form'));
+          }
+        }
+      } catch (_e) {}
+    })();
+
     // Render summary list
     let total = 0;
     orderItemsContainer.innerHTML = '';
