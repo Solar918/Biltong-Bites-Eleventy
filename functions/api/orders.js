@@ -67,31 +67,53 @@ export async function onRequestPost(context) {
     const orderId = orderResult.meta.last_row_id;
 
     // 3. Optional: Send Outbound Email if RESEND_API_KEY or SENDGRID_API_KEY is configured
+    // 3. Send Outbound Email Confirmation
     const accountNumber = env.ACCOUNT_NUMBER || '12345678';
     const contactPhone = env.PHONE_NUMBER || '+64 27 305 7992';
-    const senderEmail = env.SENDER_EMAIL || 'orders@biltongbites.koines.org';
+    const senderEmail = env.SENDER_EMAIL || 'biltongbites25@gmail.com';
+    const senderPassword = env.SENDER_PASSWORD;
 
-    if (env.RESEND_API_KEY) {
+    const itemsListHtml = cart.map(i => `<li><strong>${i.title}</strong> × ${i.quantity} @ $${parseFloat(i.price || 0).toFixed(2)}</li>`).join('');
+    const itemsListText = cart.map(i => `  * ${i.title} x ${i.quantity} @ $${parseFloat(i.price || 0).toFixed(2)}`).join('\n');
+
+    const htmlBody = `
+      <div style="font-family: sans-serif; line-height: 1.6; color: #241614; max-width: 600px;">
+        <h2 style="color: #8b1e1f;">Thank you for your order with Biltong Bites!</h2>
+        <p>Dear ${emailName},</p>
+        <p>To finalize your purchase, please complete a bank transfer with the details below:</p>
+        <div style="background: #faf7f2; border: 1px solid #e6ded3; padding: 1.25rem; border-radius: 8px; margin: 1rem 0;">
+          <p style="margin: 0.25rem 0;"><strong>Account Name:</strong> Ethan ARMSTRONG</p>
+          <p style="margin: 0.25rem 0;"><strong>Account Number:</strong> ${accountNumber}</p>
+          <p style="margin: 0.25rem 0;"><strong>Total Amount Due:</strong> $${total.toFixed(2)} NZD</p>
+          <p style="margin: 0.25rem 0;"><strong>Reference:</strong> Order #${orderId}</p>
+        </div>
+        <h3>Order #${orderId} Summary</h3>
+        <ul>${itemsListHtml}</ul>
+        <p><strong>Pickup Location:</strong> Long Bay College, Auckland 0630. We'll notify you as soon as your biltong is ready!</p>
+        <p>Questions? Contact us at ${contactPhone} or reply to this email.</p>
+      </div>
+    `;
+
+    const textBody = `Dear ${emailName},\n\nThank you for ordering with Biltong Bites!\n\nOrder #${orderId} Summary:\n${itemsListText}\n\nTotal Due: $${total.toFixed(2)} NZD\n\nBank Transfer Details:\nAccount Name: Ethan ARMSTRONG\nAccount Number: ${accountNumber}\nReference: Order #${orderId}\n\nPickup Location: Long Bay College, Auckland 0630\nQuestions? Contact us at ${contactPhone} or reply to this email.`;
+
+    // Try Gmail SMTP first if password is provided
+    if (senderEmail && senderPassword) {
       try {
-        const itemsListHtml = cart.map(i => `<li><strong>${i.title}</strong> × ${i.quantity} @ $${parseFloat(i.price || 0).toFixed(2)}</li>`).join('');
-        const html = `
-          <div style="font-family: sans-serif; line-height: 1.6; color: #241614;">
-            <h2 style="color: #8b1e1f;">Thank you for your order with Biltong Bites!</h2>
-            <p>Dear ${emailName},</p>
-            <p>To finalize your purchase, please complete a bank transfer with the details below:</p>
-            <div style="background: #faf7f2; border: 1px solid #e6ded3; padding: 1rem; border-radius: 8px; margin: 1rem 0;">
-              <p style="margin: 0.25rem 0;"><strong>Account Name:</strong> Ethan ARMSTRONG</p>
-              <p style="margin: 0.25rem 0;"><strong>Account Number:</strong> ${accountNumber}</p>
-              <p style="margin: 0.25rem 0;"><strong>Total Amount Due:</strong> $${total.toFixed(2)} NZD</p>
-              <p style="margin: 0.25rem 0;"><strong>Reference:</strong> Order #${orderId}</p>
-            </div>
-            <h3>Order #${orderId} Summary</h3>
-            <ul>${itemsListHtml}</ul>
-            <p><strong>Pickup Location:</strong> Long Bay College, Auckland 0630. We'll notify you as soon as your biltong is ready!</p>
-            <p>Questions? Contact us at ${contactPhone} or reply to this email.</p>
-          </div>
-        `;
-
+        const { sendGmailSmtp } = await import('./_email_utils.js');
+        await sendGmailSmtp({
+          user: senderEmail,
+          pass: senderPassword,
+          to: [email, senderEmail], // sends to customer and bcc store owner
+          subject: `Order #${orderId} Received - Biltong Bites`,
+          text: textBody,
+          html: htmlBody,
+        });
+      } catch (smtpErr) {
+        console.error('Failed to send order email via Gmail SMTP:', smtpErr);
+      }
+    } else if (env.RESEND_API_KEY) {
+      // Fallback to Resend API if configured
+      try {
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
@@ -102,7 +124,7 @@ export async function onRequestPost(context) {
             from: `Biltong Bites <${senderEmail}>`,
             to: [email],
             subject: `Order #${orderId} Received - Biltong Bites`,
-            html: html
+            html: htmlBody
           })
         });
       } catch (emailErr) {

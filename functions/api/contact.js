@@ -20,8 +20,24 @@ export async function onRequestPost(context) {
     }
 
     const recipient = env.SENDER_EMAIL || env.RECEIVER_EMAIL || 'biltongbites25@gmail.com';
+    const senderPassword = env.SENDER_PASSWORD;
 
-    if (env.RESEND_API_KEY) {
+    if (recipient && senderPassword) {
+      try {
+        const { sendGmailSmtp } = await import('./_email_utils.js');
+        await sendGmailSmtp({
+          user: recipient,
+          pass: senderPassword,
+          to: [recipient],
+          replyTo: email,
+          subject: `New Inquiry from ${name} - Biltong Bites Contact Form`,
+          text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+          html: `<div style="font-family: sans-serif; line-height: 1.6;"><p><strong>Name:</strong> ${name}</p><p><strong>Email:</strong> ${email}</p><p><strong>Message:</strong></p><p style="white-space: pre-wrap;">${message}</p></div>`
+        });
+      } catch (smtpErr) {
+        console.error('Contact email dispatch failed via Gmail SMTP:', smtpErr);
+      }
+    } else if (env.RESEND_API_KEY) {
       try {
         await fetch('https://api.resend.com/emails', {
           method: 'POST',
