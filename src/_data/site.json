@@ -1,12 +1,12 @@
 {
   "name": "Biltong Bites",
-  "title": "Premium Artisanal South African Air-Dried Meats",
-  "description": "100% Pasture-Raised Prime Beef, slow air-cured with coarse roasted coriander and vinegar. Zero added sugar, strictly Kosher certified, 52g protein per 100g.",
-  "url": "https://biltongbites.org",
-  "phone": "+44 (0) 7496 170741",
+  "title": "Artisanal Handcrafted Beef Biltong",
+  "description": "Artisanal, nutrient-dense biltong hand-made in Auckland using low-stress New Zealand beef for superior tenderness and less acidity. Quality you can taste in every single bite.",
+  "url": "https://biltongbites.koines.org",
   "author": {
     "name": "Biltong Bites",
-    "email": "orders@biltongbites.org",
+    "email": "biltongbites25@gmail.com",
     "github": "Solar918/Biltong-Bites-Eleventy"
-  }
+  },
+  "pickup": "Long Bay College, Auckland 0630"
 }

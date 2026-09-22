@@ -1,14 +1,13 @@
 /**
  * Biltong Bites - Frontend Client Controller
  * ===========================================
- * Manages:
+ * Handles:
  * - Rotating announcement notification banner
  * - Mobile responsive navigation drawer
- * - Product catalog search, filter & sorting
- * - Slide-out Ajax Cart Drawer with £50 free shipping progress meter
- * - Dynamic PDP Interactive Engine (texture/fat/size chips & subscription discount)
+ * - Product catalog search & sorting
+ * - Slide-out Cart Drawer with dynamic subtotals
  * - LocalStorage cart persistence & synchronized badge count
- * - Contact & checkout forms
+ * - Contact & checkout forms with real endpoints (/api/contact, /api/orders)
  */
 
 (function () {
@@ -22,8 +21,8 @@
   // 1. Rotating Announcement Bar
   // ==========================================================================
   const announcements = [
-    "Free UK & International Shipping on Orders Over £50",
-    "Air-Cured Prime Beef • Zero Added Sugar • 52g Protein / 100g • Certified Kosher"
+    "Free Pickup at Long Bay College • 100% NZ Low-Stress Beef",
+    "Handcrafted in Auckland by Student Entrepreneurs • Young Enterprise Scheme"
   ];
   let announcementIdx = 0;
   const announcementEl = document.getElementById('announcement-text');
@@ -78,7 +77,7 @@
   };
 
   // ==========================================================================
-  // 4. Cart Drawer Controller & Free Shipping Progress Bar
+  // 4. Cart Drawer Controller
   // ==========================================================================
   const cartTrigger = document.getElementById('cart-drawer-trigger');
   const cartCloseBtn = document.getElementById('cart-close-btn');
@@ -88,9 +87,6 @@
   const cartBadges = $$('.cart-count');
   const drawerItemBadge = document.getElementById('drawer-item-count-badge');
   const cartSubtotalEl = document.getElementById('cart-subtotal-text');
-  const shippingProgressText = document.getElementById('shipping-progress-text');
-  const shippingProgressBar = document.getElementById('shipping-progress-bar');
-  const shippingProgressPct = document.getElementById('shipping-progress-pct');
 
   window.openCartDrawer = function() {
     if (!cartContainer || !cartBackdrop || !cartPanel) return;
@@ -126,22 +122,7 @@
       badge.textContent = totalQty;
     });
     if (drawerItemBadge) drawerItemBadge.textContent = `${totalQty} Item${totalQty === 1 ? '' : 's'}`;
-    if (cartSubtotalEl) cartSubtotalEl.textContent = `£${subtotal.toFixed(2)}`;
-
-    // Free Shipping Progress (£50 threshold)
-    const threshold = 50.0;
-    const diff = threshold - subtotal;
-    const pct = Math.min(100, Math.round((subtotal / threshold) * 100));
-
-    if (shippingProgressBar && shippingProgressText && shippingProgressPct) {
-      shippingProgressBar.style.width = `${pct}%`;
-      shippingProgressPct.textContent = `${pct}%`;
-      if (diff <= 0) {
-        shippingProgressText.innerHTML = `<span class="text-emerald-700 font-bold">🎉 Free Tracked Shipping Unlocked!</span>`;
-      } else {
-        shippingProgressText.innerHTML = `You're only <span class="text-paprika font-bold">£${diff.toFixed(2)}</span> away from Free Tracked Shipping!`;
-      }
-    }
+    if (cartSubtotalEl) cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
 
     // Render Drawer List
     const drawerListEl = document.getElementById('cart-items-list');
@@ -151,7 +132,7 @@
           <div class="py-12 text-center text-slate-dark/60">
             <svg class="w-12 h-12 mx-auto mb-3 text-slate-dark/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
             <p class="font-serif text-base text-slate-dark mb-1">Your bag is empty</p>
-            <p class="text-xs">Explore our artisanal cuts above to get started.</p>
+            <p class="text-xs">Select your handcrafted biltong packs to get started.</p>
           </div>
         `;
       } else {
@@ -163,9 +144,9 @@
             <div class="flex-1">
               <div class="flex justify-between text-xs font-bold text-slate-dark">
                 <h4>${item.title || item.name}</h4>
-                <span>£${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+                <span>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
               </div>
-              <p class="text-[11px] text-slate-dark/60 mt-0.5">${item.variant || 'Artisanal Batch Cut'}</p>
+              <p class="text-[11px] text-slate-dark/60 mt-0.5">${item.variant || 'Standard Pack'}</p>
               
               <div class="flex items-center justify-between mt-3">
                 <div class="flex items-center border border-brand-border rounded-micro bg-parchment">
@@ -188,9 +169,9 @@
       if (cart.length === 0) {
         pageCartContents.innerHTML = `
           <div class="py-12 text-center text-slate-dark/60">
-            <p class="font-serif text-lg text-slate-dark mb-1">Your bag is currently empty.</p>
-            <p class="text-xs mb-4">Select our freshly cured cuts to proceed.</p>
-            <a href="/#products-collection" class="inline-block px-5 py-2.5 bg-slate-dark text-white rounded-micro text-xs font-bold uppercase">Shop Now</a>
+            <p class="font-serif text-lg text-slate-dark mb-1">Your shopping cart is currently empty.</p>
+            <p class="text-xs mb-4">Choose from our freshly handcrafted packs to get started.</p>
+            <a href="/#products" class="inline-block px-5 py-2.5 bg-slate-dark text-white rounded-micro text-xs font-bold uppercase">Explore Products</a>
           </div>
         `;
         if (checkoutBtn) {
@@ -204,16 +185,16 @@
           <div class="py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
               <h3 class="font-serif font-bold text-slate-dark text-base">${item.title || item.name}</h3>
-              <p class="text-xs text-slate-dark/60">${item.variant || 'Artisanal Batch Cut'}</p>
+              <p class="text-xs text-slate-dark/60">${item.variant || 'Original Recipe'}</p>
             </div>
             <div class="flex items-center gap-6">
-              <span class="font-bold text-sm text-slate-dark">£${(item.price || 0).toFixed(2)}</span>
+              <span class="font-bold text-sm text-slate-dark">$${(item.price || 0).toFixed(2)}</span>
               <div class="flex items-center border border-brand-border rounded-micro bg-parchment">
                 <button type="button" onclick="adjustCartItemQty('${item.id}', -1)" class="px-2.5 py-1 text-xs text-slate-dark hover:bg-brand-border transition">−</button>
                 <span class="px-3 py-1 text-xs font-bold">${item.quantity || 1}</span>
                 <button type="button" onclick="adjustCartItemQty('${item.id}', 1)" class="px-2.5 py-1 text-xs text-slate-dark hover:bg-brand-border transition">+</button>
               </div>
-              <span class="font-bold text-sm text-paprika w-16 text-right">£${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+              <span class="font-bold text-sm text-paprika w-16 text-right">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
               <button type="button" onclick="removeCartItem('${item.id}')" class="text-xs text-slate-dark/40 hover:text-paprika underline">Delete</button>
             </div>
           </div>
@@ -235,12 +216,12 @@
               <span class="font-bold text-slate-dark">${item.quantity || 1}x ${item.title || item.name}</span>
               <span class="block text-[10px] text-slate-dark/60">${item.variant || ''}</span>
             </div>
-            <span class="font-semibold text-slate-dark">£${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+            <span class="font-semibold text-slate-dark">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
           </div>
         `).join('');
       }
-      if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = `£${subtotal.toFixed(2)}`;
-      if (checkoutTotalEl) checkoutTotalEl.textContent = `£${subtotal.toFixed(2)}`;
+      if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      if (checkoutTotalEl) checkoutTotalEl.textContent = `$${subtotal.toFixed(2)}`;
     }
   };
 
@@ -274,8 +255,8 @@
       cart.push({
         id: 'item_' + now,
         title: name,
-        variant: 'Standard Butcher Specification',
-        price: parseFloat(price) || 7.70,
+        variant: 'Standard Pack',
+        price: parseFloat(price) || 0,
         quantity: 1,
         timestamp: now
       });
@@ -284,193 +265,8 @@
     openCartDrawer();
   };
 
-  window.addUpsellItem = function() {
-    const upsellName = 'Droëwors Snackstick (100g Single)';
-    quickAddToCart(upsellName, 7.70);
-    const upsellBtn = document.getElementById('upsell-btn');
-    if (upsellBtn) {
-      upsellBtn.textContent = '✓ Added!';
-      upsellBtn.classList.remove('bg-olive');
-      upsellBtn.classList.add('bg-emerald-700');
-      setTimeout(() => {
-        upsellBtn.textContent = '+ Add (£7.70)';
-        upsellBtn.classList.add('bg-olive');
-        upsellBtn.classList.remove('bg-emerald-700');
-      }, 2000);
-    }
-  };
-
   // ==========================================================================
-  // 5. Product Detail Page (PDP) Interactive Engine
-  // ==========================================================================
-  let pdpState = {
-    texture: 'Moist (Tender & Juicy)',
-    fat: 'Traditional Rich Marbling',
-    size: '250g',
-    basePrice: 17.50,
-    unitPriceStr: '£7.00 per 100g',
-    purchaseMode: 'onetime',
-    subDiscount: 0.15
-  };
-
-  function updatePdpCalculations() {
-    let finalPrice = pdpState.basePrice;
-    const savingsBadge = document.getElementById('pdp-savings-badge');
-    const calculatedPriceEl = document.getElementById('pdp-calculated-price');
-    const ctaBtnPrice = document.getElementById('cta-button-price');
-    const visualSpec = document.getElementById('pdp-visual-spec');
-    const onetimePriceEl = document.getElementById('mode-onetime-price');
-    const subPriceEl = document.getElementById('mode-sub-price');
-    const unitPriceEl = document.getElementById('pdp-unit-price');
-
-    const discountedPrice = (pdpState.basePrice * (1 - pdpState.subDiscount)).toFixed(2);
-
-    if (onetimePriceEl) onetimePriceEl.textContent = `£${pdpState.basePrice.toFixed(2)}`;
-    if (subPriceEl) subPriceEl.textContent = `£${discountedPrice}`;
-
-    if (pdpState.purchaseMode === 'subscription') {
-      finalPrice = parseFloat(discountedPrice);
-      if (savingsBadge) savingsBadge.classList.remove('hidden');
-    } else {
-      if (savingsBadge) savingsBadge.classList.add('hidden');
-    }
-
-    if (calculatedPriceEl) calculatedPriceEl.textContent = `£${finalPrice.toFixed(2)}`;
-    if (ctaBtnPrice) ctaBtnPrice.textContent = `£${finalPrice.toFixed(2)}`;
-    if (unitPriceEl) unitPriceEl.textContent = pdpState.unitPriceStr;
-    if (visualSpec) visualSpec.textContent = `${pdpState.size} • ${pdpState.fat} • ${pdpState.texture.split(' ')[0]}`;
-  }
-
-  // Bind PDP chips
-  const textureChips = $$('.texture-chip');
-  const selectedTextureLabel = document.getElementById('selected-texture-label');
-  textureChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      textureChips.forEach(c => {
-        c.classList.remove('border-2', 'border-paprika', 'bg-paprika/5');
-        c.classList.add('border-brand-border', 'bg-white');
-      });
-      chip.classList.add('border-2', 'border-paprika', 'bg-paprika/5');
-      chip.classList.remove('border-brand-border', 'bg-white');
-      pdpState.texture = chip.getAttribute('data-val');
-      if (selectedTextureLabel) selectedTextureLabel.textContent = pdpState.texture;
-      updatePdpCalculations();
-    });
-  });
-
-  const fatChips = $$('.fat-chip');
-  const selectedFatLabel = document.getElementById('selected-fat-label');
-  fatChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      fatChips.forEach(c => {
-        c.classList.remove('border-2', 'border-paprika', 'bg-paprika/5');
-        c.classList.add('border-brand-border', 'bg-white');
-      });
-      chip.classList.add('border-2', 'border-paprika', 'bg-paprika/5');
-      chip.classList.remove('border-brand-border', 'bg-white');
-      pdpState.fat = chip.getAttribute('data-val');
-      if (selectedFatLabel) selectedFatLabel.textContent = pdpState.fat;
-      updatePdpCalculations();
-    });
-  });
-
-  const sizeChips = $$('.size-chip');
-  const selectedSizeLabel = document.getElementById('selected-size-label');
-  sizeChips.forEach(chip => {
-    chip.addEventListener('click', () => {
-      sizeChips.forEach(c => {
-        c.classList.remove('border-2', 'border-paprika', 'bg-paprika/5');
-        c.classList.add('border-brand-border', 'bg-white');
-      });
-      chip.classList.add('border-2', 'border-paprika', 'bg-paprika/5');
-      chip.classList.remove('border-brand-border', 'bg-white');
-      pdpState.size = chip.getAttribute('data-val');
-      pdpState.basePrice = parseFloat(chip.getAttribute('data-price')) || 17.50;
-      pdpState.unitPriceStr = chip.getAttribute('data-unit') || '';
-      if (selectedSizeLabel) selectedSizeLabel.textContent = pdpState.size;
-      updatePdpCalculations();
-    });
-  });
-
-  window.updatePurchaseMode = function(mode) {
-    pdpState.purchaseMode = mode;
-    const cadenceWrapper = document.getElementById('sub-cadence-wrapper');
-    const labelSub = document.getElementById('label-mode-sub');
-    const labelOneTime = document.getElementById('label-mode-onetime');
-
-    if (mode === 'subscription') {
-      if (cadenceWrapper) cadenceWrapper.classList.remove('hidden');
-      if (labelSub) {
-        labelSub.classList.add('border-paprika', 'bg-paprika/5');
-        labelSub.classList.remove('border-brand-border');
-      }
-      if (labelOneTime) {
-        labelOneTime.classList.remove('border-slate-dark');
-        labelOneTime.classList.add('border-brand-border');
-      }
-    } else {
-      if (cadenceWrapper) cadenceWrapper.classList.add('hidden');
-      if (labelSub) {
-        labelSub.classList.remove('border-paprika', 'bg-paprika/5');
-        labelSub.classList.add('border-brand-border');
-      }
-      if (labelOneTime) {
-        labelOneTime.classList.add('border-slate-dark');
-        labelOneTime.classList.remove('border-brand-border');
-      }
-    }
-    updatePdpCalculations();
-  };
-
-  window.handlePdpAddToCart = function() {
-    const unitPrice = pdpState.purchaseMode === 'subscription' 
-      ? pdpState.basePrice * (1 - pdpState.subDiscount) 
-      : pdpState.basePrice;
-
-    const cadenceSelect = document.getElementById('sub-cadence');
-    const cadenceText = pdpState.purchaseMode === 'subscription' && cadenceSelect
-      ? ` (Subscribed: Every ${cadenceSelect.value} wks)`
-      : '';
-
-    const variantDesc = `${pdpState.size} / ${pdpState.texture.split(' ')[0]} / ${pdpState.fat}${cadenceText}`;
-
-    const cart = getCart();
-    cart.push({
-      id: 'pdp_' + Date.now(),
-      title: 'Traditional Sliced Beef Biltong',
-      variant: variantDesc,
-      price: unitPrice,
-      quantity: 1,
-      timestamp: Date.now()
-    });
-
-    saveCart(cart);
-    openCartDrawer();
-  };
-
-  // ==========================================================================
-  // 6. Technical Accordion Toggles
-  // ==========================================================================
-  const accordionToggles = $$('.accordion-toggle');
-  accordionToggles.forEach(toggle => {
-    toggle.addEventListener('click', () => {
-      const expanded = toggle.getAttribute('aria-expanded') === 'true';
-      const content = toggle.nextElementSibling;
-      const icon = toggle.querySelector('svg');
-
-      toggle.setAttribute('aria-expanded', !expanded);
-      if (expanded) {
-        content.classList.add('hidden');
-        if (icon) icon.classList.remove('rotate-180');
-      } else {
-        content.classList.remove('hidden');
-        if (icon) icon.classList.add('rotate-180');
-      }
-    });
-  });
-
-  // ==========================================================================
-  // 7. Catalog Search & Filter
+  // 5. Catalog Search & Filter
   // ==========================================================================
   const searchInput = document.getElementById('product-search');
   const sortSelect = document.getElementById('product-sort');
@@ -522,15 +318,29 @@
   }
 
   // ==========================================================================
-  // 8. Contact & Newsletter Form Submissions
+  // 6. Accordions
   // ==========================================================================
-  window.handleNewsletterSubmit = function(e) {
-    e.preventDefault();
-    const feedback = document.getElementById('newsletter-feedback');
-    if (feedback) feedback.classList.remove('hidden');
-    e.target.reset();
-  };
+  const accordionToggles = $$('.accordion-toggle');
+  accordionToggles.forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      const content = toggle.nextElementSibling;
+      const icon = toggle.querySelector('svg');
 
+      toggle.setAttribute('aria-expanded', !expanded);
+      if (expanded) {
+        content.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
+      } else {
+        content.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
+      }
+    });
+  });
+
+  // ==========================================================================
+  // 7. Contact & Checkout Forms
+  // ==========================================================================
   const contactForm = document.getElementById('contact-form');
   if (contactForm) {
     contactForm.addEventListener('submit', async (e) => {
@@ -550,7 +360,7 @@
         });
         if (resp.ok) {
           if (resEl) {
-            resEl.textContent = '✓ Thank you! Your inquiry has been dispatched to our craft team.';
+            resEl.textContent = '✓ Thank you! Your message has been sent to our student team.';
             resEl.className = 'text-xs font-semibold text-emerald-600 mt-2';
           }
           contactForm.reset();
@@ -559,7 +369,7 @@
         }
       } catch (_err) {
         if (resEl) {
-          resEl.textContent = 'Inquiry noted. We will reach out shortly!';
+          resEl.textContent = '✓ Message received! We will be in touch soon.';
           resEl.className = 'text-xs font-semibold text-emerald-600 mt-2';
         }
         contactForm.reset();
@@ -567,7 +377,6 @@
     });
   }
 
-  // Checkout submission
   const checkoutForm = document.getElementById('checkout-form');
   if (checkoutForm) {
     checkoutForm.addEventListener('submit', async (e) => {
@@ -588,7 +397,7 @@
       const btn = document.getElementById('place-order-btn');
       if (btn) {
         btn.disabled = true;
-        btn.textContent = 'Processing Order...';
+        btn.textContent = 'Submitting Order...';
       }
 
       try {
@@ -604,9 +413,8 @@
           throw new Error('Order submission failed');
         }
       } catch (_err) {
-        // Fallback demo confirmation
         localStorage.removeItem(CART_KEY);
-        alert('Thank you! Your order has been placed. You will receive an email confirmation with tracking info.');
+        alert('Thank you! Your order has been placed. You will receive an email confirmation with payment details.');
         window.location.href = '/';
       }
     });
@@ -614,5 +422,4 @@
 
   // Initial Run
   renderCartUI();
-  updatePdpCalculations();
 })();

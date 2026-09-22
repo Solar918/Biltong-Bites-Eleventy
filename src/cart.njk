@@ -1,19 +1,19 @@
 ---
 layout: layouts/base.njk
 title: Shopping Cart
-description: Review and manage your selected artisanal biltong and cured meat provisions.
+description: Review and manage your selected handcrafted biltong packs before checkout.
 ---
 
 <article class="max-w-4xl mx-auto px-4 sm:px-6 py-12 md:py-16">
   <header class="mb-8 text-center sm:text-left">
-    <div class="text-xs font-bold uppercase tracking-widest text-olive mb-1">Provision Bag</div>
-    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark">Review Your Order</h1>
+    <div class="text-xs font-bold uppercase tracking-widest text-olive mb-1">Your Order</div>
+    <h1 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark">Review Shopping Cart</h1>
   </header>
 
   <div class="bg-white rounded-micro border border-brand-border shadow-card overflow-hidden">
     <div class="p-6 bg-parchment/60 border-b border-brand-border flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-dark/70">
-      <span>Selected Provisions</span>
-      <span id="cart-summary-item-count">Provisions List</span>
+      <span>Selected Packs</span>
+      <span id="cart-summary-item-count">Items</span>
     </div>
     
     <div id="cart-contents" class="p-6 divide-y divide-brand-border/60">
@@ -21,11 +21,11 @@ description: Review and manage your selected artisanal biltong and cured meat pr
     </div>
 
     <div class="p-6 bg-parchment/40 border-t border-brand-border flex flex-col sm:flex-row items-center justify-between gap-4">
-      <a href="/#products-collection" class="text-xs font-bold text-slate-dark hover:text-paprika transition underline">
+      <a href="/#products" class="text-xs font-bold text-slate-dark hover:text-paprika transition underline">
         ← Continue Shopping
       </a>
       <a href="/checkout/" class="w-full sm:w-auto px-8 py-3.5 bg-paprika hover:bg-paprika-hover text-white text-xs font-bold uppercase tracking-wider rounded-micro shadow-card transition text-center" id="checkout-btn">
-        Proceed to Secure Checkout →
+        Proceed to Checkout →
       </a>
     </div>
   </div>

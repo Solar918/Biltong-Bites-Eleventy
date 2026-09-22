@@ -1,11 +1,11 @@
 ---
 layout: layouts/product.njk
-title: Heritage Boerewors Spiral - 500g
-description: Authentic South African farmer's barbecue wheel. 100% prime beef coarsely minced with toasted coriander seeds, sea salt, and cloves.
-price: 12.50
-flavour: ["Boerewors", "Braai Wheel"]
-quantity: ["500g"]
-weight: 500
-popularity: 3
+title: Original Biltong - 1kg
+description: Perfect for sharing or savoring over time—rich, bold, and packed with flavor.
+price: 50.00
+flavour: ["Original"]
+quantity: ["1kg"]
+weight: 1000
+popularity: 1
 image: /assets/images/1000og.jpeg
 ---

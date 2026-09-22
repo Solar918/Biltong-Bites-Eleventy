@@ -1,11 +1,11 @@
 ---
 layout: layouts/product.njk
-title: Bulk Cured Biltong Pouch - 500g
-description: Hearty bulk pouch for true biltong lovers. Air-cured with ambient airflow over several days to preserve bioavailable nutrition.
-price: 32.00
-flavour: ["Original Coriander", "Traditional"]
+title: Original Biltong - 500g
+description: A hearty portion for the avid snacker, with authentic savanna taste.
+price: 25.00
+flavour: ["Original"]
 quantity: ["500g"]
 weight: 500
-popularity: 4
+popularity: 2
 image: /assets/images/500og.jpeg
 ---

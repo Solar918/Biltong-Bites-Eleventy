@@ -1,11 +1,11 @@
 ---
 layout: layouts/product.njk
-title: Traditional Sliced Biltong - 250g
-description: Our flagship sharing pouch. Tender steak ribbons tumbled in toasted coriander, coarse sea salt, and malt vinegar.
-price: 17.50
-flavour: ["Original Coriander", "Moist"]
+title: Original Biltong - 250g
+description: Just the right size for a quick, delicious treat on the go.
+price: 15.00
+flavour: ["Original"]
 quantity: ["250g"]
 weight: 250
-popularity: 5
+popularity: 4
 image: /assets/images/250og.jpeg
 ---
