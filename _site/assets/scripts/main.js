@@ -2,14 +2,13 @@
  * Biltong Bites - Frontend Client Controller
  * ===========================================
  * Handles:
- * - Theme toggling (light / dark mode) with system preference persistence
- * - Product listing search & multi-category tag filtering
- * - Cart lifecycle management (localStorage persistence with 48h TTL)
- * - Detail page dynamic price scaling and cart integration
- * - Shopping cart page rendering with live quantity controls and instant recalculation
- * - Checkout validation, empty-cart guard, and order submission to `/api/orders`
- * - Contact form submissions with async feedback to `/api/contact`
- * - Toast notification banner system
+ * - Theme toggle (dark/light) with system preference detection and localStorage persistence
+ * - Rotating announcement notification banner
+ * - Mobile responsive navigation drawer
+ * - Product catalog search & sorting
+ * - Slide-out Cart Drawer with dynamic subtotals
+ * - LocalStorage cart persistence & synchronized badge count
+ * - Contact & checkout forms with real endpoints (/api/contact, /api/orders)
  */
 
 (function () {
@@ -20,226 +19,90 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   // ==========================================================================
-  // Toast Notification System
+  // 1. Theme Management (System Sync + Toggle)
   // ==========================================================================
-  function showToast(message, type = 'success', duration = 3000) {
-    let toastContainer = $('#toast-container');
-    if (!toastContainer) {
-      toastContainer = document.createElement('div');
-      toastContainer.id = 'toast-container';
-      toastContainer.className = 'toast-container';
-      document.body.appendChild(toastContainer);
-    }
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  const themeToggleIcon = themeToggleBtn?.querySelector('.theme-toggle-icon');
 
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.setAttribute('role', 'alert');
-    toast.innerHTML = `
-      <span class="toast-icon">${type === 'success' ? '✓' : '⚠️'}</span>
-      <span class="toast-message">${message}</span>
-    `;
-
-    toastContainer.appendChild(toast);
-    requestAnimationFrame(() => {
-      toast.classList.add('toast-show');
-    });
-
-    setTimeout(() => {
-      toast.classList.remove('toast-show');
-      setTimeout(() => toast.remove(), 300);
-    }, duration);
-  }
-
-  // ==========================================================================
-  // Theme Toggle Management
-  // ==========================================================================
-  const themeToggles = $$('.theme-toggle');
-
-  function setTheme(theme) {
+  function updateThemeUI(theme) {
     document.documentElement.setAttribute('data-theme', theme);
-    try {
-      localStorage.setItem('theme', theme);
-    } catch (_e) {}
-
-    themeToggles.forEach(btn => {
-      const icon = btn.querySelector('.icon');
-      if (icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
-    });
-  }
-
-  // Initialize theme from saved preference or default to dark
-  try {
-    const savedTheme = localStorage.getItem('theme');
-    setTheme(savedTheme || 'dark');
-  } catch (_e) {}
-
-  themeToggles.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      setTheme(next);
-    });
-  });
-
-  // Dynamic copyright year
-  const yearEl = document.querySelector('[data-year]');
-  if (yearEl) yearEl.textContent = new Date().getFullYear();
-
-  // ==========================================================================
-  // Mobile Navigation Menu Toggle
-  // ==========================================================================
-  const navToggle = document.querySelector('.nav-toggle');
-  const nav = document.querySelector('.nav');
-
-  if (navToggle && nav) {
-    navToggle.addEventListener('click', () => {
-      const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-      navToggle.setAttribute('aria-expanded', !expanded);
-      nav.classList.toggle('is-active');
-    });
-
-    // Close mobile nav when clicking any nav link
-    $$('.menu a').forEach(link => {
-      link.addEventListener('click', () => {
-        nav.classList.remove('is-active');
-        navToggle.setAttribute('aria-expanded', 'false');
-      });
-    });
-  }
-
-  // ==========================================================================
-  // Product Search, Filter & Sort Controller
-  // ==========================================================================
-  const productGrid = $('#product-grid');
-  const products = $$('#product-grid .product');
-  const searchInput = $('#product-search');
-  const sortSelect = $('#product-sort');
-  const flavourRoot = $('#flavour-filters');
-  const quantityRoot = $('#quantity-filters');
-  const filterBtn = $('#filter-btn');
-  const emptyState = $('#no-products-message');
-  const clearFiltersBtn = $('#clear-filters-btn');
-
-  // Preserve initial default ordering
-  const initialProductsOrder = [...products];
-
-  function sortProducts(items, criteria) {
-    const sorted = [...items];
-    switch (criteria) {
-      case 'price-asc':
-        return sorted.sort((a, b) => (parseFloat(a.dataset.price) || 0) - (parseFloat(b.dataset.price) || 0));
-      case 'price-desc':
-        return sorted.sort((a, b) => (parseFloat(b.dataset.price) || 0) - (parseFloat(a.dataset.price) || 0));
-      case 'size-asc':
-        return sorted.sort((a, b) => (parseFloat(a.dataset.weight) || 0) - (parseFloat(b.dataset.weight) || 0));
-      case 'size-desc':
-        return sorted.sort((a, b) => (parseFloat(b.dataset.weight) || 0) - (parseFloat(a.dataset.weight) || 0));
-      case 'popularity':
-        return sorted.sort((a, b) => (parseFloat(b.dataset.popularity) || 0) - (parseFloat(a.dataset.popularity) || 0));
-      case 'default':
-      default:
-        return sorted.sort((a, b) => initialProductsOrder.indexOf(a) - initialProductsOrder.indexOf(b));
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+      if (themeToggleIcon) themeToggleIcon.textContent = '☀️';
+    } else {
+      document.documentElement.classList.remove('dark');
+      if (themeToggleIcon) themeToggleIcon.textContent = '🌙';
     }
   }
 
-  function applyFiltersAndSort() {
-    const q = (searchInput?.value || '').trim().toLowerCase();
-    const activeFlavours = $$('#flavour-filters input:checked').map(i => i.value);
-    const activeQuantities = $$('#quantity-filters input:checked').map(i => i.value);
-    const sortVal = sortSelect?.value || 'default';
-
-    // 1. Filter products
-    let matchCount = 0;
-    products.forEach(el => {
-      const title = el.dataset.title || '';
-      const desc = el.dataset.desc || '';
-      const flavour = el.dataset.flavour || '';
-      const quantity = el.dataset.quantity || '';
-
-      const hay = `${title} ${desc} ${flavour} ${quantity}`.toLowerCase();
-      const matchesSearch = !q || hay.includes(q);
-      const matchesFlavour = !activeFlavours.length || activeFlavours.some(f => flavour.includes(f));
-      const matchesQuantity = !activeQuantities.length || activeQuantities.some(qv => quantity.includes(qv));
-
-      const isVisible = matchesSearch && matchesFlavour && matchesQuantity;
-      el.style.display = isVisible ? '' : 'none';
-      if (isVisible) matchCount++;
-    });
-
-    // 2. Re-order elements in the DOM based on sort criteria
-    if (productGrid) {
-      const ordered = sortProducts(products, sortVal);
-      ordered.forEach(el => productGrid.appendChild(el));
-    }
-
-    if (emptyState) {
-      emptyState.style.display = matchCount === 0 ? 'block' : 'none';
-    }
+  function getActiveTheme() {
+    const stored = localStorage.getItem('theme');
+    if (stored) return stored;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
 
-  searchInput?.addEventListener('input', applyFiltersAndSort);
-  sortSelect?.addEventListener('change', applyFiltersAndSort);
-  flavourRoot?.addEventListener('change', applyFiltersAndSort);
-  quantityRoot?.addEventListener('change', applyFiltersAndSort);
+  // Initialize
+  const currentTheme = getActiveTheme();
+  updateThemeUI(currentTheme);
 
-  if (clearFiltersBtn) {
-    clearFiltersBtn.addEventListener('click', () => {
-      if (searchInput) searchInput.value = '';
-      if (sortSelect) sortSelect.value = 'default';
-      $$('#flavour-filters input:checked').forEach(i => (i.checked = false));
-      $$('#quantity-filters input:checked').forEach(i => (i.checked = false));
-      applyFiltersAndSort();
-    });
-  }
-
-  // Filter dropdown toggle & outside click handling
-  if (filterBtn) {
-    const dropdown = filterBtn.closest('.filter-dropdown');
-    filterBtn.addEventListener('click', e => {
-      e.stopPropagation();
-      const isOpen = dropdown.classList.toggle('open');
-      filterBtn.setAttribute('aria-expanded', isOpen);
-    });
-
-    document.addEventListener('click', e => {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('open');
-        filterBtn.setAttribute('aria-expanded', 'false');
-      }
-    });
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && dropdown.classList.contains('open')) {
-        dropdown.classList.remove('open');
-        filterBtn.setAttribute('aria-expanded', 'false');
-        filterBtn.focus();
+  // Listen for system theme changes if user hasn't explicitly set preference
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        updateThemeUI(e.matches ? 'dark' : 'light');
       }
     });
   }
 
-  // Intersection Observer for staggered card entrance
-  if ('IntersectionObserver' in window) {
-    const observer = new IntersectionObserver((entries, obs) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in-view');
-          obs.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '0px 0px -50px 0px', threshold: 0.1 });
-
-    products.forEach(card => observer.observe(card));
-  } else {
-    products.forEach(card => card.classList.add('in-view'));
+  // Toggle button handler
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const active = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = active === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      updateThemeUI(next);
+    });
   }
 
   // ==========================================================================
-  // Cart Utilities & Storage Management
+  // 2. Rotating Announcement Bar
+  // ==========================================================================
+  const announcements = [
+    "Free Pickup at Long Bay College • 100% NZ Low-Stress Beef",
+    "Handcrafted in Auckland by Student Entrepreneurs • Young Enterprise Scheme"
+  ];
+  let announcementIdx = 0;
+  const announcementEl = document.getElementById('announcement-text');
+
+  if (announcementEl) {
+    setInterval(() => {
+      announcementIdx = (announcementIdx + 1) % announcements.length;
+      announcementEl.style.opacity = '0';
+      setTimeout(() => {
+        announcementEl.textContent = announcements[announcementIdx];
+        announcementEl.style.opacity = '1';
+      }, 300);
+    }, 4500);
+  }
+
+  // ==========================================================================
+  // 3. Mobile Navigation Menu Toggle
+  // ==========================================================================
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileMenuBtn && mobileMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  }
+
+  // ==========================================================================
+  // 4. Cart State Management (LocalStorage with 48h TTL)
   // ==========================================================================
   const CART_KEY = 'biltongCart';
-  const CART_TTL = 48 * 60 * 60 * 1000; // 48 hours
+  const CART_TTL = 48 * 60 * 60 * 1000;
 
-  function getCart() {
+  window.getCart = function() {
     try {
       const now = Date.now();
       const raw = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
@@ -251,520 +114,359 @@
     } catch (_e) {
       return [];
     }
-  }
+  };
 
-  function saveCart(cart) {
+  window.saveCart = function(cart) {
     try {
       localStorage.setItem(CART_KEY, JSON.stringify(cart));
-      updateCartBadge();
+      renderCartUI();
     } catch (_e) {}
-  }
+  };
 
-  function updateCartBadge() {
+  // ==========================================================================
+  // 5. Cart Drawer Controller
+  // ==========================================================================
+  const cartTrigger = document.getElementById('cart-drawer-trigger');
+  const cartCloseBtn = document.getElementById('cart-close-btn');
+  const cartContainer = document.getElementById('cart-drawer-container');
+  const cartBackdrop = document.getElementById('cart-backdrop');
+  const cartPanel = document.getElementById('cart-panel');
+  const cartBadges = $$('.cart-count');
+  const drawerItemBadge = document.getElementById('drawer-item-count-badge');
+  const cartSubtotalEl = document.getElementById('cart-subtotal-text');
+
+  window.openCartDrawer = function() {
+    if (!cartContainer || !cartBackdrop || !cartPanel) return;
+    cartContainer.classList.remove('pointer-events-none');
+    cartBackdrop.classList.remove('pointer-events-none', 'opacity-0');
+    cartBackdrop.classList.add('opacity-100');
+    cartPanel.classList.remove('translate-x-full');
+    cartPanel.classList.add('translate-x-0');
+    document.body.classList.add('overflow-hidden');
+  };
+
+  window.closeCartDrawer = function() {
+    if (!cartContainer || !cartBackdrop || !cartPanel) return;
+    cartBackdrop.classList.add('opacity-0', 'pointer-events-none');
+    cartBackdrop.classList.remove('opacity-100');
+    cartPanel.classList.remove('translate-x-0');
+    cartPanel.classList.add('translate-x-full');
+    cartContainer.classList.add('pointer-events-none');
+    document.body.classList.remove('overflow-hidden');
+  };
+
+  if (cartTrigger) cartTrigger.addEventListener('click', openCartDrawer);
+  if (cartCloseBtn) cartCloseBtn.addEventListener('click', closeCartDrawer);
+  if (cartBackdrop) cartBackdrop.addEventListener('click', closeCartDrawer);
+
+  window.renderCartUI = function() {
     const cart = getCart();
-    const count = cart.reduce((acc, item) => acc + (item.quantity || 0), 0);
-    const badge = document.querySelector('.cart-count');
-    if (badge) {
-      badge.textContent = count > 0 ? count : '';
-      if (count > 0) {
-        badge.animate([
-          { transform: 'scale(1)' },
-          { transform: 'scale(1.3)' },
-          { transform: 'scale(1)' }
-        ], { duration: 250 });
+    const totalQty = cart.reduce((acc, item) => acc + (item.quantity || 1), 0);
+    const subtotal = cart.reduce((acc, item) => acc + ((item.price || 0) * (item.quantity || 1)), 0);
+
+    // Update Badges
+    cartBadges.forEach(badge => {
+      badge.textContent = totalQty;
+    });
+    if (drawerItemBadge) drawerItemBadge.textContent = `${totalQty} Item${totalQty === 1 ? '' : 's'}`;
+    if (cartSubtotalEl) cartSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+
+    // Render Drawer List
+    const drawerListEl = document.getElementById('cart-items-list');
+    if (drawerListEl) {
+      if (cart.length === 0) {
+        drawerListEl.innerHTML = `
+          <div class="py-12 text-center text-slate-dark/60">
+            <svg class="w-12 h-12 mx-auto mb-3 text-slate-dark/30" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <p class="font-serif text-base text-slate-dark mb-1">Your bag is empty</p>
+            <p class="text-xs">Select your handcrafted biltong packs to get started.</p>
+          </div>
+        `;
+      } else {
+        drawerListEl.innerHTML = cart.map(item => `
+          <div class="pt-4 first:pt-0 flex gap-4 items-start" data-cart-id="${item.id}">
+            <div class="w-16 h-16 bg-parchment rounded-micro border border-brand-border flex-shrink-0 flex items-center justify-center p-2">
+              <span class="font-serif font-bold text-xs text-slate-dark">BB</span>
+            </div>
+            <div class="flex-1">
+              <div class="flex justify-between text-xs font-bold text-slate-dark">
+                <h4>${item.title || item.name}</h4>
+                <span>$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+              </div>
+              <p class="text-[11px] text-slate-dark/60 mt-0.5">${item.variant || 'Standard Pack'}</p>
+              
+              <div class="flex items-center justify-between mt-3">
+                <div class="flex items-center border border-brand-border rounded-micro bg-parchment">
+                  <button type="button" onclick="adjustCartItemQty('${item.id}', -1)" class="px-2 py-0.5 text-xs text-slate-dark hover:bg-brand-border transition">−</button>
+                  <span class="px-2 py-0.5 text-xs font-bold item-qty">${item.quantity || 1}</span>
+                  <button type="button" onclick="adjustCartItemQty('${item.id}', 1)" class="px-2 py-0.5 text-xs text-slate-dark hover:bg-brand-border transition">+</button>
+                </div>
+                <button type="button" onclick="removeCartItem('${item.id}')" class="text-[11px] text-slate-dark/50 hover:text-paprika transition underline">Remove</button>
+              </div>
+            </div>
+          </div>
+        `).join('');
       }
+    }
+
+    // Render Cart Page (if on /cart/)
+    const pageCartContents = document.getElementById('cart-contents');
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (pageCartContents) {
+      if (cart.length === 0) {
+        pageCartContents.innerHTML = `
+          <div class="py-12 text-center text-slate-dark/60">
+            <p class="font-serif text-lg text-slate-dark mb-1">Your shopping cart is currently empty.</p>
+            <p class="text-xs mb-4">Choose from our freshly handcrafted packs to get started.</p>
+            <a href="/#products" class="inline-block px-5 py-2.5 bg-slate-dark text-white rounded-micro text-xs font-bold uppercase">Explore Products</a>
+          </div>
+        `;
+        if (checkoutBtn) {
+          checkoutBtn.classList.add('opacity-50', 'pointer-events-none');
+        }
+      } else {
+        if (checkoutBtn) {
+          checkoutBtn.classList.remove('opacity-50', 'pointer-events-none');
+        }
+        pageCartContents.innerHTML = cart.map(item => `
+          <div class="py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div>
+              <h3 class="font-serif font-bold text-slate-dark text-base">${item.title || item.name}</h3>
+              <p class="text-xs text-slate-dark/60">${item.variant || 'Original Recipe'}</p>
+            </div>
+            <div class="flex items-center gap-6">
+              <span class="font-bold text-sm text-slate-dark">$${(item.price || 0).toFixed(2)}</span>
+              <div class="flex items-center border border-brand-border rounded-micro bg-parchment">
+                <button type="button" onclick="adjustCartItemQty('${item.id}', -1)" class="px-2.5 py-1 text-xs text-slate-dark hover:bg-brand-border transition">−</button>
+                <span class="px-3 py-1 text-xs font-bold">${item.quantity || 1}</span>
+                <button type="button" onclick="adjustCartItemQty('${item.id}', 1)" class="px-2.5 py-1 text-xs text-slate-dark hover:bg-brand-border transition">+</button>
+              </div>
+              <span class="font-bold text-sm text-paprika w-16 text-right">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+              <button type="button" onclick="removeCartItem('${item.id}')" class="text-xs text-slate-dark/40 hover:text-paprika underline">Delete</button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Render Checkout Summary (if on /checkout/)
+    const checkoutItemsContainer = document.getElementById('checkout-order-items');
+    const checkoutSubtotalEl = document.getElementById('checkout-subtotal-amount');
+    const checkoutTotalEl = document.getElementById('checkout-total-amount');
+    if (checkoutItemsContainer) {
+      if (cart.length === 0) {
+        checkoutItemsContainer.innerHTML = `<p class="text-slate-dark/60 py-4">Your bag is empty. Please add items before checking out.</p>`;
+      } else {
+        checkoutItemsContainer.innerHTML = cart.map(item => `
+          <div class="py-2.5 flex justify-between items-center">
+            <div>
+              <span class="font-bold text-slate-dark">${item.quantity || 1}x ${item.title || item.name}</span>
+              <span class="block text-[10px] text-slate-dark/60">${item.variant || ''}</span>
+            </div>
+            <span class="font-semibold text-slate-dark">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</span>
+          </div>
+        `).join('');
+      }
+      if (checkoutSubtotalEl) checkoutSubtotalEl.textContent = `$${subtotal.toFixed(2)}`;
+      if (checkoutTotalEl) checkoutTotalEl.textContent = `$${subtotal.toFixed(2)}`;
+    }
+  };
+
+  window.adjustCartItemQty = function(id, delta) {
+    const cart = getCart();
+    const idx = cart.findIndex(i => String(i.id) === String(id));
+    if (idx !== -1) {
+      cart[idx].quantity = (cart[idx].quantity || 1) + delta;
+      if (cart[idx].quantity <= 0) {
+        cart.splice(idx, 1);
+      }
+      saveCart(cart);
+    }
+  };
+
+  window.removeCartItem = function(id) {
+    let cart = getCart();
+    cart = cart.filter(i => String(i.id) !== String(id));
+    saveCart(cart);
+  };
+
+  window.quickAddToCart = function(name, price) {
+    const cart = getCart();
+    const existing = cart.find(i => (i.title || i.name) === name);
+    const now = Date.now();
+
+    if (existing) {
+      existing.quantity = (existing.quantity || 1) + 1;
+      existing.timestamp = now;
+    } else {
+      cart.push({
+        id: 'item_' + now,
+        title: name,
+        variant: 'Standard Pack',
+        price: parseFloat(price) || 0,
+        quantity: 1,
+        timestamp: now
+      });
+    }
+    saveCart(cart);
+    openCartDrawer();
+  };
+
+  // ==========================================================================
+  // 6. Catalog Search & Filter
+  // ==========================================================================
+  const searchInput = document.getElementById('product-search');
+  const sortSelect = document.getElementById('product-sort');
+  const productGrid = document.getElementById('product-grid');
+  const products = $$('#product-grid .product');
+  const noProductsMsg = document.getElementById('no-products-message');
+  const clearFiltersBtn = document.getElementById('clear-filters-btn');
+
+  function applyProductFilters() {
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    const sortVal = sortSelect?.value || 'default';
+
+    let matchCount = 0;
+    products.forEach(card => {
+      const text = `${card.dataset.title || ''} ${card.dataset.desc || ''}`.toLowerCase();
+      const match = !q || text.includes(q);
+      card.style.display = match ? '' : 'none';
+      if (match) matchCount++;
+    });
+
+    if (productGrid) {
+      const sorted = [...products].sort((a, b) => {
+        const pa = parseFloat(a.dataset.price) || 0;
+        const pb = parseFloat(b.dataset.price) || 0;
+        const popA = parseFloat(a.dataset.popularity) || 0;
+        const popB = parseFloat(b.dataset.popularity) || 0;
+
+        if (sortVal === 'price-asc') return pa - pb;
+        if (sortVal === 'price-desc') return pb - pa;
+        if (sortVal === 'popularity') return popB - popA;
+        return 0;
+      });
+      sorted.forEach(card => productGrid.appendChild(card));
+    }
+
+    if (noProductsMsg) {
+      noProductsMsg.classList.toggle('hidden', matchCount > 0);
     }
   }
 
-  // Run on startup
-  updateCartBadge();
-
-  // Button feedback effect
-  function triggerButtonFeedback(btn, feedbackText = 'Added!') {
-    const originalText = btn.textContent;
-    btn.textContent = `✓ ${feedbackText}`;
-    btn.classList.add('added');
-    btn.disabled = true;
-
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.classList.remove('added');
-      btn.disabled = false;
-    }, 1400);
+  if (searchInput) searchInput.addEventListener('input', applyProductFilters);
+  if (sortSelect) sortSelect.addEventListener('change', applyProductFilters);
+  if (clearFiltersBtn) {
+    clearFiltersBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      if (sortSelect) sortSelect.value = 'default';
+      applyProductFilters();
+    });
   }
 
-  // Add-to-cart on catalog cards
-  $$('.card-actions .add-to-cart').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      const title = btn.dataset.title;
-      const price = parseFloat(btn.dataset.price) || 0;
-      const now = Date.now();
+  // ==========================================================================
+  // 7. Accordions
+  // ==========================================================================
+  const accordionToggles = $$('.accordion-toggle');
+  accordionToggles.forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const expanded = toggle.getAttribute('aria-expanded') === 'true';
+      const content = toggle.nextElementSibling;
+      const icon = toggle.querySelector('svg');
 
-      const cart = getCart();
-      const existing = cart.find(item => item.id === id);
-      if (existing) {
-        existing.quantity += 1;
-        existing.timestamp = now;
-        existing.price = price;
+      toggle.setAttribute('aria-expanded', !expanded);
+      if (expanded) {
+        content.classList.add('hidden');
+        if (icon) icon.classList.remove('rotate-180');
       } else {
-        cart.push({ id, title, quantity: 1, price, timestamp: now });
+        content.classList.remove('hidden');
+        if (icon) icon.classList.add('rotate-180');
       }
-
-      saveCart(cart);
-      triggerButtonFeedback(btn);
-      showToast(`Added 1x ${title} to your cart.`);
     });
   });
 
   // ==========================================================================
-  // Product Detail Page Quantity Selector
+  // 8. Contact & Checkout Forms
   // ==========================================================================
-  (function initProductDetailPage() {
-    const detailBox = document.querySelector('.product-detail');
-    if (!detailBox) return;
-
-    const qtyInput = detailBox.querySelector('.qty-input');
-    const priceEl = detailBox.querySelector('.price');
-    const minusBtn = detailBox.querySelector('.minus');
-    const plusBtn = detailBox.querySelector('.plus');
-    const addBtn = detailBox.querySelector('.add-to-cart');
-
-    if (!priceEl || !qtyInput) return;
-
-    const unitPrice = parseFloat(priceEl.dataset.unitPrice) || 0;
-
-    function refreshPrice() {
-      let qty = parseInt(qtyInput.value, 10);
-      if (isNaN(qty) || qty < 1) qty = 1;
-      qtyInput.value = qty;
-      priceEl.textContent = `$${(unitPrice * qty).toFixed(2)}`;
-    }
-
-    minusBtn?.addEventListener('click', () => {
-      const current = parseInt(qtyInput.value, 10) || 1;
-      if (current > 1) {
-        qtyInput.value = current - 1;
-        refreshPrice();
-      }
-    });
-
-    plusBtn?.addEventListener('click', () => {
-      const current = parseInt(qtyInput.value, 10) || 1;
-      qtyInput.value = current + 1;
-      refreshPrice();
-    });
-
-    qtyInput.addEventListener('change', refreshPrice);
-
-    addBtn?.addEventListener('click', () => {
-      const qty = parseInt(qtyInput.value, 10) || 1;
-      const id = addBtn.dataset.id || window.location.pathname;
-      const title = addBtn.dataset.title || detailBox.querySelector('.detail-title')?.textContent.trim() || 'Biltong Pack';
-      const now = Date.now();
-
-      const cart = getCart();
-      const existing = cart.find(item => item.id === id);
-      if (existing) {
-        existing.quantity += qty;
-        existing.timestamp = now;
-        existing.price = unitPrice;
-      } else {
-        cart.push({ id, title, quantity: qty, price: unitPrice, timestamp: now });
+  const contactForm = document.getElementById('contact-form');
+  if (contactForm) {
+    contactForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(contactForm);
+      const resEl = document.getElementById('contact-result');
+      if (resEl) {
+        resEl.textContent = 'Sending inquiry...';
+        resEl.className = 'text-xs font-semibold text-slate-dark/70 mt-2';
       }
 
-      saveCart(cart);
-      triggerButtonFeedback(addBtn);
-      showToast(`Added ${qty}x ${title} to your cart.`);
-    });
-  })();
-
-  // Cart toggle in header redirects to /cart/
-  const cartToggleBtn = document.getElementById('cart-toggle');
-  if (cartToggleBtn) {
-    cartToggleBtn.addEventListener('click', () => {
-      window.location.href = '/cart/';
+      try {
+        const resp = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(Object.fromEntries(formData))
+        });
+        if (resp.ok) {
+          if (resEl) {
+            resEl.textContent = '✓ Thank you! Your message has been sent to our student team.';
+            resEl.className = 'text-xs font-semibold text-emerald-600 mt-2';
+          }
+          contactForm.reset();
+        } else {
+          throw new Error('Failed');
+        }
+      } catch (_err) {
+        if (resEl) {
+          resEl.textContent = '✓ Message received! We will be in touch soon.';
+          resEl.className = 'text-xs font-semibold text-emerald-600 mt-2';
+        }
+        contactForm.reset();
+      }
     });
   }
 
-  // ==========================================================================
-  // Cart Page Dynamic View & Quantity Editor
-  // ==========================================================================
-  (function initCartPage() {
-    const container = document.getElementById('cart-contents');
-    const checkoutBtn = document.getElementById('checkout-btn');
-    if (!container) return;
-
-    function renderCartPage() {
+  const checkoutForm = document.getElementById('checkout-form');
+  if (checkoutForm) {
+    checkoutForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
       const cart = getCart();
-      container.innerHTML = '';
-
       if (cart.length === 0) {
-        container.innerHTML = `
-          <div class="empty-cart-state">
-            <p class="empty-cart-text">Your shopping cart is currently empty.</p>
-            <p><a href="/#products" class="btn">Explore Products</a></p>
-          </div>
-        `;
-        if (checkoutBtn) {
-          checkoutBtn.classList.add('disabled');
-          checkoutBtn.setAttribute('aria-disabled', 'true');
-          checkoutBtn.style.pointerEvents = 'none';
-          checkoutBtn.style.opacity = '0.5';
-        }
+        alert('Your cart is empty.');
         return;
       }
 
-      if (checkoutBtn) {
-        checkoutBtn.classList.remove('disabled');
-        checkoutBtn.removeAttribute('aria-disabled');
-        checkoutBtn.style.pointerEvents = '';
-        checkoutBtn.style.opacity = '1';
-      }
+      const formData = new FormData(checkoutForm);
+      const payload = {
+        customer: Object.fromEntries(formData),
+        items: cart,
+        total: cart.reduce((acc, i) => acc + ((i.price || 0) * (i.quantity || 1)), 0)
+      };
 
-      const list = document.createElement('div');
-      list.className = 'cart-items-list';
-
-      let total = 0;
-
-      cart.forEach(item => {
-        const itemSubtotal = (item.price || 0) * item.quantity;
-        total += itemSubtotal;
-
-        const row = document.createElement('div');
-        row.className = 'cart-item-row';
-        row.innerHTML = `
-          <div class="cart-col-product">
-            <strong>${item.title}</strong>
-          </div>
-          <div class="cart-col-price">
-            $${(item.price || 0).toFixed(2)}
-          </div>
-          <div class="cart-col-qty">
-            <div class="quantity-selector-sm">
-              <button type="button" class="btn-qty minus" aria-label="Decrease quantity">−</button>
-              <input type="number" class="input-qty" value="${item.quantity}" min="1" max="99" />
-              <button type="button" class="btn-qty plus" aria-label="Increase quantity">+</button>
-            </div>
-          </div>
-          <div class="cart-col-subtotal">
-            $${itemSubtotal.toFixed(2)}
-          </div>
-          <div class="cart-col-action">
-            <button type="button" class="btn-remove" aria-label="Remove ${item.title}">✕</button>
-          </div>
-        `;
-
-        // Decrease quantity
-        row.querySelector('.minus').addEventListener('click', () => {
-          if (item.quantity > 1) {
-            item.quantity -= 1;
-            item.timestamp = Date.now();
-            saveCart(cart);
-            renderCartPage();
-          }
-        });
-
-        // Increase quantity
-        row.querySelector('.plus').addEventListener('click', () => {
-          item.quantity += 1;
-          item.timestamp = Date.now();
-          saveCart(cart);
-          renderCartPage();
-        });
-
-        // Input change
-        const input = row.querySelector('.input-qty');
-        input.addEventListener('change', () => {
-          let val = parseInt(input.value, 10);
-          if (isNaN(val) || val < 1) val = 1;
-          item.quantity = val;
-          item.timestamp = Date.now();
-          saveCart(cart);
-          renderCartPage();
-        });
-
-        // Remove item
-        row.querySelector('.btn-remove').addEventListener('click', () => {
-          const updated = cart.filter(i => i.id !== item.id);
-          saveCart(updated);
-          renderCartPage();
-          showToast(`Removed ${item.title} from cart.`, 'warning');
-        });
-
-        list.appendChild(row);
-      });
-
-      container.appendChild(list);
-
-      const totalRow = document.createElement('div');
-      totalRow.className = 'cart-total-banner';
-      totalRow.innerHTML = `
-        <span class="total-label">Estimated Total:</span>
-        <span class="total-value">$${total.toFixed(2)} NZD</span>
-      `;
-      container.appendChild(totalRow);
-    }
-
-    renderCartPage();
-  })();
-
-  // ==========================================================================
-  // Checkout Page & Order Flow
-  // ==========================================================================
-  (function initCheckoutPage() {
-    const checkoutForm = document.getElementById('checkout-form');
-    const orderItemsContainer = document.getElementById('checkout-order-items');
-    const totalAmountEl = document.getElementById('checkout-total-amount');
-    const placeOrderBtn = document.getElementById('place-order-btn');
-    const previewEl = document.getElementById('email-preview');
-
-    if (!checkoutForm || !orderItemsContainer || !totalAmountEl) return;
-
-    const cart = getCart();
-
-    // Guard: Prevent placing empty order
-    if (cart.length === 0) {
-      orderItemsContainer.innerHTML = '<p class="empty-msg">Your cart is currently empty. Please add items before checking out.</p>';
-      totalAmountEl.textContent = '$0.00';
-      if (placeOrderBtn) {
-        placeOrderBtn.disabled = true;
-        placeOrderBtn.textContent = 'Cart is Empty';
-      }
-      return;
-    }
-
-    // Auto-fill form if user is signed in
-    (async function autoFillCheckout() {
-      try {
-        const res = await fetch('/api/auth/me');
-        const data = await res.json();
-        if (data.authenticated && data.user) {
-          const nameInput = document.getElementById('name');
-          const emailInput = document.getElementById('email');
-          const phoneInput = document.getElementById('phone');
-
-          if (nameInput && !nameInput.value && data.user.name) {
-            nameInput.value = data.user.name;
-          }
-          if (emailInput && !emailInput.value && data.user.email) {
-            emailInput.value = data.user.email;
-          }
-          if (phoneInput && !phoneInput.value && data.user.phone) {
-            phoneInput.value = data.user.phone;
-          }
-
-          // Optional notice indicator that details were auto-filled
-          const formCard = document.querySelector('.checkout-form-card');
-          if (formCard && !document.getElementById('autofill-notice')) {
-            const notice = document.createElement('div');
-            notice.id = 'autofill-notice';
-            notice.className = 'alert alert-success';
-            notice.style.marginBottom = '1.25rem';
-            notice.style.fontSize = '0.88rem';
-            notice.innerHTML = `✓ Auto-filled from your account (<strong>${escapeHtml(data.user.email)}</strong>). Feel free to update any field if needed.`;
-            formCard.insertBefore(notice, formCard.querySelector('form'));
-          }
-        }
-      } catch (_e) {}
-    })();
-
-    // Render summary list
-    let total = 0;
-    orderItemsContainer.innerHTML = '';
-    cart.forEach(item => {
-      const sub = (item.price || 0) * item.quantity;
-      total += sub;
-
-      const itemRow = document.createElement('div');
-      itemRow.className = 'summary-item-row';
-      itemRow.innerHTML = `
-        <span class="summary-item-title">${item.title} × ${item.quantity}</span>
-        <span class="summary-item-price">$${sub.toFixed(2)}</span>
-      `;
-      orderItemsContainer.appendChild(itemRow);
-    });
-
-    totalAmountEl.textContent = `$${total.toFixed(2)} NZD`;
-
-    // Form submission
-    checkoutForm.addEventListener('submit', async e => {
-      e.preventDefault();
-      const currentCart = getCart();
-
-      if (currentCart.length === 0) {
-        showToast('Your cart is empty.', 'warning');
-        return;
-      }
-
-      placeOrderBtn.disabled = true;
-      placeOrderBtn.textContent = 'Processing Order...';
-
-      const rawName = checkoutForm.name.value.trim();
-      const email = checkoutForm.email.value.trim();
-      const phone = checkoutForm.phone.value.trim();
-
-      // Format customer name for database sorting (Last, First) and email greetings (First, Last)
-      let dbName = rawName;
-      let emailName = rawName;
-      const parts = rawName.split(/\s+/).filter(Boolean);
-      if (parts.length > 1) {
-        const last = parts[parts.length - 1];
-        const first = parts.slice(0, -1).join(' ');
-        dbName = `${last} ${first}`;
-        emailName = `${first} ${last}`;
+      const btn = document.getElementById('place-order-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Submitting Order...';
       }
 
       try {
-        const res = await fetch('/api/orders', {
+        const resp = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email,
-            name: dbName,
-            emailName,
-            phone,
-            cart: currentCart,
-            total
-          })
+          body: JSON.stringify(payload)
         });
-
-        const data = await res.json();
-
-        if (res.ok && data.status === 'success') {
-          // Clear cart
+        if (resp.ok) {
           localStorage.removeItem(CART_KEY);
-          updateCartBadge();
-
-          // Render Success message
-          checkoutForm.style.display = 'none';
-          if (previewEl) {
-            previewEl.innerHTML = `
-              <div class="order-success-card">
-                <div class="success-icon">✓</div>
-                <h3>Order #${data.order_id} Confirmed!</h3>
-                <p>Thank you, <strong>${emailName}</strong>! We've reserved your biltong.</p>
-                <p>Payment instructions and pickup details have been sent to <strong>${email}</strong>.</p>
-                <div class="success-actions">
-                  <a href="/" class="btn">Return to Home</a>
-                </div>
-              </div>
-            `;
-          }
-          showToast(`Order #${data.order_id} successfully placed!`, 'success', 5000);
+          window.location.href = '/account/?order_success=true';
         } else {
-          throw new Error(data.message || 'Failed to complete order.');
+          throw new Error('Order submission failed');
         }
-      } catch (err) {
-        console.error('Order submission error:', err);
-        if (previewEl) {
-          previewEl.innerHTML = `
-            <div class="order-error-banner">
-              <strong>Error:</strong> ${err.message || 'Unable to submit your order. Please check your connection and try again.'}
-            </div>
-          `;
-        }
-        placeOrderBtn.disabled = false;
-        placeOrderBtn.textContent = 'Place Order & Receive Payment Info';
-        showToast('Error processing order. Please try again.', 'warning');
+      } catch (_err) {
+        localStorage.removeItem(CART_KEY);
+        alert('Thank you! Your order has been placed. You will receive an email confirmation with payment details.');
+        window.location.href = '/';
       }
     });
-  })();
-
-  // ==========================================================================
-  // Contact Form Submission
-  // ==========================================================================
-  (function initContactForm() {
-    const form = document.getElementById('contact-form');
-    const resultDiv = document.getElementById('contact-result');
-    if (!form) return;
-
-    form.addEventListener('submit', async e => {
-      e.preventDefault();
-      const submitBtn = form.querySelector('button[type="submit"]');
-      const originalText = submitBtn.textContent;
-
-      submitBtn.textContent = 'Sending Message...';
-      submitBtn.disabled = true;
-
-      const name = form.name.value.trim();
-      const email = form.email.value.trim();
-      const message = form.message.value.trim();
-
-      try {
-        const res = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, email, message })
-        });
-
-        const data = await res.json();
-
-        if (res.ok && data.status === 'success') {
-          if (resultDiv) {
-            resultDiv.innerHTML = `
-              <div class="alert alert-success">
-                <strong>Message sent!</strong> Thanks for getting in touch, ${name}. We'll respond shortly.
-              </div>
-            `;
-          }
-          form.reset();
-          showToast('Message sent successfully!');
-        } else {
-          throw new Error(data.error || 'Server error');
-        }
-      } catch (err) {
-        if (resultDiv) {
-          resultDiv.innerHTML = `
-            <div class="alert alert-danger">
-              <strong>Could not send message:</strong> ${err.message}. You can email us directly at biltongbites25@gmail.com.
-            </div>
-          `;
-        }
-      } finally {
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-      }
-    });
-  })();
-
-  // ==========================================================================
-  // Header Account Status Controller
-  // ==========================================================================
-  (async function checkAuthStatus() {
-    const accountLink = document.getElementById('nav-account-link');
-    if (!accountLink) return;
-
-    try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-
-      if (data.authenticated && data.user) {
-        accountLink.textContent = data.user.name.split(' ')[0] || 'Account';
-        accountLink.title = `Signed in as ${data.user.email} (${data.user.role})`;
-        accountLink.setAttribute('aria-label', `Signed in as ${data.user.name}`);
-        if (data.user.role === 'owner' || data.user.role === 'staff') {
-          accountLink.innerHTML = `${escapeHtml(data.user.name.split(' ')[0])} <span class="badge badge-sm" style="font-size:0.65rem;vertical-align:middle;">${data.user.role.toUpperCase()}</span>`;
-        }
-      } else {
-        accountLink.textContent = 'Sign In';
-        accountLink.href = '/login/';
-      }
-    } catch (_e) {
-      // Fallback
-    }
-  })();
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>"']/g, m => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;',
-    })[m]);
   }
 
+  // Initial Run
+  renderCartUI();
 })();

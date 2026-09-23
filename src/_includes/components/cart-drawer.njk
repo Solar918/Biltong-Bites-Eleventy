@@ -6,12 +6,12 @@
     <div class="absolute inset-0 overflow-hidden">
       <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
         
-        <div id="cart-panel" class="cart-drawer-panel pointer-events-auto w-screen max-w-md bg-white border-l border-brand-border shadow-2xl flex flex-col translate-x-full">
+        <div id="cart-panel" class="cart-drawer-panel pointer-events-auto w-screen max-w-md bg-brand-surface border-l border-brand-border shadow-2xl flex flex-col translate-x-full">
           
-          <div class="p-5 border-b border-brand-border flex items-center justify-between bg-parchment/60">
+          <div class="p-5 border-b border-brand-border flex items-center justify-between bg-brand-surface-raised">
             <div class="flex items-center gap-2">
               <h3 id="cart-title" class="font-serif text-lg font-bold text-slate-dark">Your Shopping Bag</h3>
-              <span id="drawer-item-count-badge" class="bg-slate-dark text-white text-[11px] font-bold px-2 py-0.5 rounded-full">0 Items</span>
+              <span id="drawer-item-count-badge" class="bg-slate-dark text-parchment text-[11px] font-bold px-2 py-0.5 rounded-full">0 Items</span>
             </div>
             <button id="cart-close-btn" type="button" aria-label="Close cart drawer" class="p-2 text-slate-dark/60 hover:text-slate-dark rounded-micro transition">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,13 +26,13 @@
           </div>
 
           <!-- Drawer Footer / Checkout Actions -->
-          <div class="p-5 bg-parchment/70 border-t border-brand-border space-y-4">
+          <div class="p-5 bg-brand-surface-raised border-t border-brand-border space-y-4">
             <div class="space-y-1.5 text-xs text-slate-dark">
               <div class="flex justify-between">
                 <span class="text-slate-dark/70">Subtotal:</span>
                 <span id="cart-subtotal-text" class="font-bold text-slate-dark text-sm">$0.00</span>
               </div>
-              <div class="flex justify-between text-emerald-800">
+              <div class="flex justify-between text-emerald-700 dark:text-emerald-400">
                 <span>School Pickup (Long Bay College):</span>
                 <span class="font-bold">Free</span>
               </div>

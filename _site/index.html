@@ -1,416 +1,963 @@
 <!doctype html>
-<html lang="en" class="no-js">
+<html lang="en" class="scroll-smooth no-js" data-theme="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Biltong Bites · Handcrafted Artisanal Biltong</title>
-    <meta name="description" content="At Biltong Bites, we craft premium, tender artisanal biltong made with low-stress beef for superior flavour and nutrition. High protein Kiwi snacks by young entrepreneurs." />
+    <title>Handcrafted Tender Biltong · Artisanal Handcrafted Beef Biltong</title>
+    <meta name="description" content="Artisanal, nutrient-dense biltong hand-made in Auckland using low-stress New Zealand beef for superior tenderness and less acidity." />
 
-    <meta property="og:title" content="Biltong Bites · Premium Handcrafted Biltong" />
-    <meta property="og:description" content="At Biltong Bites, we craft premium, tender artisanal biltong made with low-stress beef for superior flavour and nutrition." />
+    <meta property="og:title" content="Handcrafted Tender Biltong" />
+    <meta property="og:description" content="Artisanal, nutrient-dense biltong hand-made in Auckland using low-stress New Zealand beef for superior tenderness and less acidity." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://biltongbites.koines.org/" />
-    <meta property="og:image" content="https://biltongbites.koines.org/assets/images/500og.jpeg" />
+    <meta property="og:image" content="https://biltongbites.koines.org/assets/images/100og.jpeg" />
 
     <meta name="twitter:card" content="summary_large_image" />
 
+    <!-- Google Fonts: Playfair Display & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="preload" href="/assets/styles/main.css?v=3" as="style" />
-    <link rel="stylesheet" href="/assets/styles/main.css?v=3" />
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
+      tailwind.config = {
+        darkMode: ['class', '[data-theme="dark"]'],
+        theme: {
+          extend: {
+            colors: {
+              parchment: 'var(--bg)',
+              'brand-surface': 'var(--surface)',
+              'brand-surface-raised': 'var(--surface-raised)',
+              'brand-midnight': '#140e0c',
+              'slate-dark': 'var(--text)',
+              paprika: 'var(--primary)',
+              'paprika-hover': 'var(--primary-hover)',
+              olive: 'var(--accent)',
+              'olive-hover': 'var(--primary)',
+              'brand-border': 'var(--border)'
+            },
+            fontFamily: {
+              serif: ['"Playfair Display"', 'Georgia', 'serif'],
+              sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif']
+            },
+            borderRadius: {
+              'micro': '6px'
+            },
+            boxShadow: {
+              'subtle': '0 2px 10px rgba(0, 0, 0, 0.05)',
+              'card': '0 4px 20px -2px rgba(0, 0, 0, 0.08)'
+            }
+          }
+        }
+      };
+    </script>
+
+    <!-- Main Stylesheet for Auth, Account, Admin & Components -->
+    <link rel="stylesheet" href="/assets/styles/main.css?v=5" />
+
+    <script>
+      // Theme boot: check localStorage first, else sync with system default
       (function () {
         try {
           const stored = localStorage.getItem('theme');
-          const theme = stored || 'dark';
+          let theme = stored;
+          if (!theme) {
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            theme = systemPrefersDark ? 'dark' : 'light';
+          }
           document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
           document.documentElement.classList.remove('no-js');
         } catch (_e) {}
       })();
     </script>
+
+    <style>
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        transition: background-color 0.25s ease, color 0.25s ease;
+      }
+      .font-serif {
+        font-family: 'Playfair Display', Georgia, serif;
+      }
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: var(--bg); }
+      ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+      .cart-drawer-backdrop {
+        transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s;
+      }
+      .cart-drawer-panel {
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+    </style>
   </head>
-  <body>
-    <a class="skip-link" href="#main">Skip to content</a>
-    <header class="site-header">
-      <nav class="container nav">
-        <a class="brand" href="/" aria-label="Biltong Bites home">Biltong Bites</a>
-        <button class="nav-toggle" aria-expanded="false" aria-controls="site-menu">Menu</button>
-        <ul id="site-menu" class="menu">
-          <li><a href="/#products">Products</a></li>
-          <li><a href="/#about">About</a></li>
-          <li><a href="/#contact">Contact</a></li>
-          <li>
-            <button id="cart-toggle" type="button" class="cart-toggle" aria-label="View cart" title="View cart">
-              <span class="icon" aria-hidden="true">🛒</span>
-              <span class="cart-count"></span>
-            </button>
-          </li>
-          <li>
-            <button id="theme-toggle" type="button" class="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
-              <span class="icon" aria-hidden="true">🌙</span>
-            </button>
-          </li>
-        </ul>
-      </nav>
-    </header>
-
-    <main id="main" tabindex="-1">
-      <!-- Hero Section -->
-      <section class="hero container" aria-labelledby="intro-heading">
-        <div class="hero-content">
-          <div class="hero-badge">
-            <span class="hero-badge-dot"></span> 100% NZ Crafted Beef Biltong · Young Enterprise Scheme
-          </div>
-          <h1 id="intro-heading">Handcrafted. Tender. <br><span class="text-accent">Biltong Bites.</span></h1>
-          <p class="lead">Artisanal, nutrient-dense biltong hand-made in Auckland using low-stress beef for superior tenderness and less acidity. Quality you can taste in every single bite.</p>
-          
-          <div class="cta">
-            <a href="#products" class="btn">Shop Our Range</a>
-            <a href="#about" class="btn btn-ghost">Our Story</a>
-          </div>
-
-          <!-- Value Propositions -->
-          <div class="usp-icons">
-            <div class="usp-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-              <span>High Protein</span>
-            </div>
-            <div class="usp-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg>
-              <span>Low-Stress Beef</span>
-            </div>
-            <div class="usp-item">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-              <span>Artisanal Quality</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Products Section -->
-      <section id="products" class="container section" aria-labelledby="products-heading">
-        <header class="section-header">
-          <div>
-            <h2 id="products-heading">Our Products</h2>
-            <p class="section-subheading">Choose your pack size, freshly spiced and naturally cured.</p>
-          </div>
-
-          <div class="controls">
-            <!-- Search Input -->
-            <label class="search" for="product-search">
-              <span class="visually-hidden">Search products</span>
-              <input id="product-search" type="search" placeholder="Search products…" autocomplete="off" />
-            </label>
-
-            <!-- Sort Dropdown -->
-            <div class="sort-control">
-              <label for="product-sort" class="visually-hidden">Sort products</label>
-              <select id="product-sort" aria-label="Sort products">
-                <option value="default">Sort by: Default</option>
-                <option value="popularity">Popularity (Best Sellers)</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="size-asc">Size: Small to Large</option>
-                <option value="size-desc">Size: Large to Small</option>
-              </select>
-            </div>
-
-            <div class="filter-dropdown">
-              <button class="filter-toggle" id="filter-btn" aria-haspopup="true" aria-expanded="false">
-                <span>Filters</span>
-                <span class="filter-arrow" aria-hidden="true">▾</span>
-              </button>
-              <div class="filter-menu" role="menu">
-                <div class="filter-column">
-                  <span class="filter-heading">Flavour</span>
-                  <div class="filter-group" id="flavour-filters">
-                    <label><input type="checkbox" value="original" /> <span>Original</span></label>
-                  </div>
-                </div>
-                <div class="filter-column">
-                  <span class="filter-heading">Quantity</span>
-                  <div class="filter-group" id="quantity-filters">
-                    <label><input type="checkbox" value="50g" /> <span>50g</span></label>
-                    <label><input type="checkbox" value="100g" /> <span>100g</span></label>
-                    <label><input type="checkbox" value="250g" /> <span>250g</span></label>
-                    <label><input type="checkbox" value="500g" /> <span>500g</span></label>
-                    <label><input type="checkbox" value="1kg" /> <span>1kg</span></label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div class="grid products" id="product-grid">
-          <!-- 50g -->
-          <article class="card product" tabindex="0"
-            data-title="original biltong - 50g"
-            data-desc="a small, tasty hit of biltong—perfect for light snacking."
-            data-flavour="original"
-            data-quantity="50g"
-            data-price="5"
-            data-weight="50"
-            data-popularity="3">
-            <div class="card-media">
-              <span class="card-price-badge">$5.00</span>
-              <img loading="lazy" src="/assets/images/50og.jpeg" alt="Original Biltong - 50g" />
-            </div>
-            <div class="card-body">
-              <div class="card-tags">
-                <span class="tag tag-flavour">Original</span>
-                <span class="tag tag-size">50g</span>
-              </div>
-              <h3 class="card-title">Original Biltong - 50g</h3>
-              <p class="card-desc">A small, tasty hit of biltong—perfect for light snacking.</p>
-              <div class="card-actions">
-                <a class="btn btn-ghost more" href="/products/product-50og/">Details</a>
-                <button type="button" class="btn btn-primary add-to-cart" 
-                        data-id="/products/product-50og/" 
-                        data-title="Original Biltong - 50g" 
-                        data-price="5" 
-                        aria-label="Add Original Biltong - 50g to cart">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- 100g -->
-          <article class="card product" tabindex="0"
-            data-title="original biltong - 100g"
-            data-desc="a satisfying snack-sized serve—flavourful, protein-rich, and ready anytime."
-            data-flavour="original"
-            data-quantity="100g"
-            data-price="8"
-            data-weight="100"
-            data-popularity="5">
-            <div class="card-media">
-              <span class="card-price-badge">$8.00</span>
-              <img loading="lazy" src="/assets/images/100og.jpeg" alt="Original Biltong - 100g" />
-            </div>
-            <div class="card-body">
-              <div class="card-tags">
-                <span class="tag tag-flavour">Original</span>
-                <span class="tag tag-size">100g</span>
-              </div>
-              <h3 class="card-title">Original Biltong - 100g</h3>
-              <p class="card-desc">A satisfying snack-sized serve—flavourful, protein-rich, and ready anytime.</p>
-              <div class="card-actions">
-                <a class="btn btn-ghost more" href="/products/product-100og/">Details</a>
-                <button type="button" class="btn btn-primary add-to-cart" 
-                        data-id="/products/product-100og/" 
-                        data-title="Original Biltong - 100g" 
-                        data-price="8" 
-                        aria-label="Add Original Biltong - 100g to cart">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- 250g -->
-          <article class="card product" tabindex="0"
-            data-title="original biltong - 250g"
-            data-desc="just the right size for a quick, delicious treat on the go."
-            data-flavour="original"
-            data-quantity="250g"
-            data-price="15"
-            data-weight="250"
-            data-popularity="4">
-            <div class="card-media">
-              <span class="card-price-badge">$15.00</span>
-              <img loading="lazy" src="/assets/images/250og.jpeg" alt="Original Biltong - 250g" />
-            </div>
-            <div class="card-body">
-              <div class="card-tags">
-                <span class="tag tag-flavour">Original</span>
-                <span class="tag tag-size">250g</span>
-              </div>
-              <h3 class="card-title">Original Biltong - 250g</h3>
-              <p class="card-desc">Just the right size for a quick, delicious treat on the go.</p>
-              <div class="card-actions">
-                <a class="btn btn-ghost more" href="/products/product-250og/">Details</a>
-                <button type="button" class="btn btn-primary add-to-cart" 
-                        data-id="/products/product-250og/" 
-                        data-title="Original Biltong - 250g" 
-                        data-price="15" 
-                        aria-label="Add Original Biltong - 250g to cart">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- 500g -->
-          <article class="card product" tabindex="0"
-            data-title="original biltong - 500g"
-            data-desc="a hearty portion for the avid snacker, with authentic savanna taste."
-            data-flavour="original"
-            data-quantity="500g"
-            data-price="25"
-            data-weight="500"
-            data-popularity="2">
-            <div class="card-media">
-              <span class="card-price-badge">$25.00</span>
-              <img loading="lazy" src="/assets/images/500og.jpeg" alt="Original Biltong - 500g" />
-            </div>
-            <div class="card-body">
-              <div class="card-tags">
-                <span class="tag tag-flavour">Original</span>
-                <span class="tag tag-size">500g</span>
-              </div>
-              <h3 class="card-title">Original Biltong - 500g</h3>
-              <p class="card-desc">A hearty portion for the avid snacker, with authentic savanna taste.</p>
-              <div class="card-actions">
-                <a class="btn btn-ghost more" href="/products/product-500og/">Details</a>
-                <button type="button" class="btn btn-primary add-to-cart" 
-                        data-id="/products/product-500og/" 
-                        data-title="Original Biltong - 500g" 
-                        data-price="25" 
-                        aria-label="Add Original Biltong - 500g to cart">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </article>
-
-          <!-- 1kg -->
-          <article class="card product" tabindex="0"
-            data-title="original biltong - 1kg"
-            data-desc="perfect for sharing or savoring over time—rich, bold, and packed with flavor."
-            data-flavour="original"
-            data-quantity="1kg"
-            data-price="50"
-            data-weight="1000"
-            data-popularity="1">
-            <div class="card-media">
-              <span class="card-price-badge">$50.00</span>
-              <img loading="lazy" src="/assets/images/1000og.jpeg" alt="Original Biltong - 1kg" />
-            </div>
-            <div class="card-body">
-              <div class="card-tags">
-                <span class="tag tag-flavour">Original</span>
-                <span class="tag tag-size">1kg</span>
-              </div>
-              <h3 class="card-title">Original Biltong - 1kg</h3>
-              <p class="card-desc">Perfect for sharing or savoring over time—rich, bold, and packed with flavor.</p>
-              <div class="card-actions">
-                <a class="btn btn-ghost more" href="/products/product-1000og/">Details</a>
-                <button type="button" class="btn btn-primary add-to-cart" 
-                        data-id="/products/product-1000og/" 
-                        data-title="Original Biltong - 1kg" 
-                        data-price="50" 
-                        aria-label="Add Original Biltong - 1kg to cart">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <div id="no-products-message" class="empty-state" style="display: none;">
-          <p>No products match your current filters.</p>
-          <button type="button" class="btn btn-ghost" id="clear-filters-btn">Clear All Filters</button>
-        </div>
-      </section>
-
-      <!-- About Section -->
-      <section id="about" class="container section" aria-labelledby="about-heading">
-        <div class="about-card">
-          <div class="about-content">
-            <span class="section-tag">Young Enterprise Scheme</span>
-            <h2 id="about-heading">Our Story</h2>
-            <p>
-              We’re a team of four passionate 15 and 16-year-old student founders from Long Bay College in Auckland running <strong>Biltong Bites</strong> as part of the Young Enterprise Scheme (YES).
-            </p>
-            <p>
-              Unlike mass-produced jerky, we handcraft our biltong using carefully selected, low-stress meat. This thoughtful curing method yields pieces that are naturally more tender, less acidic, and richer in wholesome flavor.
-            </p>
-            <p>
-              Driven by teamwork, passion, and high standards, we take pride in delivering a clean, high-protein snack made right here by the next generation of Kiwi entrepreneurs.
-            </p>
-            <div class="about-stats">
-              <div class="stat-box">
-                <span class="stat-number">4</span>
-                <span class="stat-label">Student Founders</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-number">100%</span>
-                <span class="stat-label">NZ Handcrafted</span>
-              </div>
-              <div class="stat-box">
-                <span class="stat-number">High</span>
-                <span class="stat-label">Natural Protein</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Contact Section -->
-      <section id="contact" class="container section" aria-labelledby="contact-heading">
-        <div class="contact-wrapper">
-          <div class="contact-info">
-            <h2 id="contact-heading">Get in Touch</h2>
-            <p>Have questions about bulk orders, school pickups, or our curing process? We'd love to hear from you!</p>
-            <p class="contact-email">
-              <strong>Direct Email:</strong><br>
-              <a href="mailto:biltongbites25@gmail.com">biltongbites25@gmail.com</a>
-            </p>
-            <p class="contact-pickup">
-              <strong>Pickup Location:</strong><br>
-              Long Bay College, Auckland 0630
-            </p>
-          </div>
-
-          <div class="contact-form-box">
-            <form id="contact-form">
-              <div class="form-row">
-                <label>
-                  <span>Your Name</span>
-                  <input required name="name" type="text" placeholder="e.g. John Doe" autocomplete="name" />
-                </label>
-                <label>
-                  <span>Your Email</span>
-                  <input required type="email" name="email" placeholder="e.g. john@example.com" autocomplete="email" />
-                </label>
-              </div>
-              <label>
-                <span>Message</span>
-                <textarea required name="message" rows="5" placeholder="How can we help you?"></textarea>
-              </label>
-              <button class="btn" type="submit">Send Message</button>
-            </form>
-            <div id="contact-result" style="margin-top: 1rem;"></div>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="site-footer">
-      <div class="container footer-grid">
-        <div class="footer-brand">
-          <span class="footer-logo">Biltong Bites</span>
-          <p class="footer-desc">Crafted with pride by young Kiwi entrepreneurs under the Young Enterprise Scheme.</p>
-        </div>
-
-        <div class="footer-links">
-          <ul class="footer-nav">
-            <li><a href="/#products">Products</a></li>
-            <li><a href="/#about">About Us</a></li>
-            <li><a href="/#contact">Contact</a></li>
-            <li><a href="/cart/">Cart</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-meta">
-          <p class="copyright">© <span data-year></span> Biltong Bites. All rights reserved.</p>
-          <p class="footer-sub"><a href="https://github.com/Solar918/Biltong-Bites-Eleventy" target="_blank" rel="noopener noreferrer">View on GitHub</a></p>
+  <body class="antialiased min-h-screen flex flex-col selection:bg-paprika selection:text-white">
+    <a class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:p-3 focus:bg-paprika focus:text-white focus:rounded-micro" href="#main">Skip to content</a>
+    
+    <header class="sticky top-0 z-40 bg-[var(--surface)]/95 backdrop-blur-md border-b border-brand-border shadow-subtle transition-all duration-300">
+  <!-- Top Announcement Bar -->
+  <aside class="bg-[#121212] text-[#F9F6F0] py-2 px-4 text-xs font-medium tracking-wide border-b border-white/5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="hidden md:flex items-center space-x-2 text-[11px] text-gray-300">
+        <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+        <span>Young Enterprise Scheme • Hand-Crafted in Auckland, NZ</span>
+      </div>
+      
+      <!-- Rotating Announcement Text -->
+      <div class="w-full md:w-auto text-center overflow-hidden flex-1 md:px-8">
+        <div id="announcement-track" class="transition-opacity duration-300">
+          <span id="announcement-text" class="inline-block font-medium">Free Pickup at Long Bay College • 100% NZ Low-Stress Beef</span>
         </div>
       </div>
-    </footer>
+
+      <div class="hidden md:flex items-center space-x-4 text-[11px] text-gray-300">
+        <span class="text-amber-300 font-semibold tracking-wider">HIGH PROTEIN</span>
+        <span>|</span>
+        <a href="/#about" class="hover:text-white transition">Our Story</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Navigation Header -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20">
+      
+      <!-- Mobile Menu Trigger -->
+      <div class="flex items-center lg:hidden">
+        <button id="mobile-menu-btn" type="button" aria-label="Open mobile menu" class="p-2 text-[var(--text)] hover:text-paprika focus:outline-none">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Brand Wordmark & Artisan Badge -->
+      <div class="flex-shrink-0 flex flex-col justify-center">
+        <a href="/" class="group flex items-center gap-3">
+          <div class="w-10 h-10 rounded-micro bg-[var(--surface-raised)] text-[var(--text)] flex items-center justify-center font-serif text-xl font-bold border border-brand-border shadow-sm group-hover:border-paprika transition">
+            BB
+          </div>
+          <div>
+            <span class="block font-serif text-2xl font-bold tracking-tight text-[var(--text)] group-hover:text-paprika transition">BILTONG BITES</span>
+            <span class="block text-[10px] tracking-widest uppercase font-semibold text-olive">100% NZ Crafted Beef Biltong</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Desktop Navigation Links -->
+      <nav class="hidden lg:flex items-center space-x-7 text-sm font-medium text-[var(--text)]/90">
+        <a href="/#products" class="hover:text-paprika transition py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-paprika hover:after:w-full after:transition-all">Our Products</a>
+        <a href="/#craft" class="hover:text-paprika transition py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-paprika hover:after:w-full after:transition-all">The Curing Craft</a>
+        <a href="/#comparison-table" class="hover:text-paprika transition py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-paprika hover:after:w-full after:transition-all">Biltong vs. Jerky</a>
+        <a href="/#about" class="hover:text-paprika transition py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-paprika hover:after:w-full after:transition-all">Our Story</a>
+        <a href="/#contact" class="hover:text-paprika transition py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-paprika hover:after:w-full after:transition-all">Contact</a>
+      </nav>
+
+      <!-- Utility Icons, Theme Toggle & Cart Trigger -->
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle" type="button" class="p-2 text-[var(--text)] hover:text-paprika transition rounded-micro focus:outline-none" aria-label="Toggle theme" title="Toggle theme">
+          <span class="theme-toggle-icon text-base">🌙</span>
+        </button>
+
+        <a href="/account/" aria-label="Customer Account" class="p-2 text-[var(--text)] hover:text-paprika transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </a>
+
+        <!-- Cart Trigger Button with Counter Badge -->
+        <button id="cart-drawer-trigger" type="button" class="relative inline-flex items-center gap-2 bg-[var(--surface-raised)] text-[var(--text)] hover:bg-paprika hover:text-white transition px-4 py-2 rounded-micro font-medium text-xs sm:text-sm tracking-wide border border-brand-border shadow-sm group">
+          <svg class="w-4 h-4 text-inherit group-hover:scale-105 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <span>Cart</span>
+          <span id="cart-badge-count" class="cart-count inline-flex items-center justify-center bg-paprika text-white text-xs font-bold rounded-full w-5 h-5 ml-0.5 transition">0</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Navigation Drawer Menu -->
+  <div id="mobile-menu" class="hidden lg:hidden border-t border-brand-border bg-[var(--surface)] px-4 pt-3 pb-6 space-y-3">
+    <a href="/#products" class="block text-base font-medium py-2 border-b border-brand-border/40 hover:text-paprika">Our Products</a>
+    <a href="/#craft" class="block text-base font-medium py-2 border-b border-brand-border/40 hover:text-paprika">The Curing Craft</a>
+    <a href="/#comparison-table" class="block text-base font-medium py-2 border-b border-brand-border/40 hover:text-paprika">Biltong vs. Jerky</a>
+    <a href="/#about" class="block text-base font-medium py-2 border-b border-brand-border/40 hover:text-paprika">Our Story</a>
+    <a href="/#contact" class="block text-base font-medium py-2 border-b border-brand-border/40 hover:text-paprika">Contact</a>
+    <a href="/account/" class="block text-base font-medium py-2 hover:text-paprika">Customer Account</a>
+    <div class="pt-2 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
+      <span>biltongbites25@gmail.com</span>
+      <span>•</span>
+      <span>Long Bay College, Auckland 0630</span>
+    </div>
+  </div>
+</header>
+
+    <main id="main" tabindex="-1" class="flex-1">
+      
+
+<!-- ========================================================================= -->
+<!-- HERO SECTION                                                              -->
+<!-- ========================================================================= -->
+<section class="relative overflow-hidden pt-12 pb-16 md:pt-20 md:pb-24 border-b border-brand-border bg-gradient-to-b from-brand-surface-raised to-parchment">
+  <div class="absolute -right-20 -top-20 w-96 h-96 rounded-full bg-paprika/5 blur-3xl pointer-events-none"></div>
+  <div class="absolute -left-20 bottom-0 w-80 h-80 rounded-full bg-olive/5 blur-3xl pointer-events-none"></div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+      
+      <!-- Left Column -->
+      <div class="lg:col-span-6 xl:col-span-7 flex flex-col justify-center">
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-micro bg-olive/10 border border-olive/20 text-olive text-xs font-semibold tracking-wider uppercase mb-5 w-fit">
+          <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>100% NZ Crafted Beef Biltong • Young Enterprise Scheme</span>
+        </div>
+
+        <h1 class="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-slate-dark leading-[1.12] mb-6">
+          Handcrafted. Tender. <br><span class="text-paprika">Biltong Bites.</span>
+        </h1>
+
+        <p class="text-base sm:text-lg text-slate-dark/80 leading-relaxed max-w-xl mb-8">
+          Artisanal, nutrient-dense biltong hand-made in Auckland using low-stress beef for superior tenderness and less natural acidity. Quality you can taste in every single bite.
+        </p>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-8">
+          <a href="#products" class="inline-flex justify-center items-center px-8 py-4 bg-paprika hover:bg-paprika-hover text-white font-medium text-base rounded-micro shadow-card transition-all duration-200 text-center">
+            Shop Our Range
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+            </svg>
+          </a>
+          <a href="#about" class="inline-flex justify-center items-center px-7 py-4 bg-transparent hover:bg-white text-slate-dark border border-slate-dark font-medium text-base rounded-micro transition-all duration-200 text-center">
+            Our Story
+          </a>
+        </div>
+
+        <div class="inline-flex items-center gap-3 p-3 bg-brand-surface rounded-micro border border-brand-border w-fit shadow-subtle">
+          <div class="flex text-amber-500">
+            ★★★★★
+          </div>
+          <div class="text-xs font-semibold text-slate-dark">
+            <span>Handcrafted in Auckland by Student Entrepreneurs</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Real Product Showcase Image -->
+      <div class="lg:col-span-6 xl:col-span-5">
+        <div class="relative rounded-micro border border-brand-border bg-brand-surface p-3 shadow-card overflow-hidden">
+          
+          <div class="relative w-full aspect-[4/3] rounded-micro overflow-hidden bg-parchment flex items-center justify-center">
+            <img src="/assets/images/100og.jpeg" alt="Handcrafted Biltong Bites pack" class="w-full h-full object-cover" />
+
+            <div class="absolute top-4 left-4 bg-slate-dark/90 text-white backdrop-blur px-3 py-1.5 rounded-micro text-xs font-semibold tracking-wide border border-white/10 flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-paprika"></span>
+              Fresh Air-Cured Batch
+            </div>
+            <div class="absolute bottom-4 right-4 bg-brand-surface text-slate-dark px-3 py-1.5 rounded-micro text-xs font-bold border border-brand-border shadow-sm max-w-[85%] text-right truncate">
+              Original Toasted Coriander &amp; Pepper
+            </div>
+          </div>
+
+          <div class="mt-3 p-3 bg-parchment rounded-micro border border-brand-border flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-slate-dark">Source:</span>
+              <span class="text-slate-dark/70">100% NZ Pasture-Fed Beef</span>
+            </div>
+            <div class="text-olive font-semibold flex items-center gap-1">
+              Low-Stress Meat Tenderization
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- VALUE PROPOSITIONS STRIP                                                 -->
+<!-- ========================================================================= -->
+<section class="bg-brand-surface border-b border-brand-border py-8" id="craft">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 lg:gap-8">
+      
+      <div class="flex items-start gap-4 p-4 rounded-micro bg-brand-surface-raised border border-brand-border/70">
+        <div class="w-10 h-10 rounded-micro bg-olive/10 text-olive flex items-center justify-center flex-shrink-0 font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-dark mb-1">High Natural Protein</h2>
+          <p class="text-xs text-slate-dark/70 leading-relaxed">Dense, bioavailable protein in every tender piece with zero cheap fillers.</p>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-4 p-4 rounded-micro bg-brand-surface-raised border border-brand-border/70">
+        <div class="w-10 h-10 rounded-micro bg-paprika/10 text-paprika flex items-center justify-center flex-shrink-0 font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-dark mb-1">Low-Stress NZ Beef</h2>
+          <p class="text-xs text-slate-dark/70 leading-relaxed">Animals raised with less stress, delivering superior natural tenderness and significantly less acidity.</p>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-4 p-4 rounded-micro bg-brand-surface-raised border border-brand-border/70">
+        <div class="w-10 h-10 rounded-micro bg-slate-dark/10 text-slate-dark flex items-center justify-center flex-shrink-0 font-bold">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-slate-dark mb-1">Artisanal Small Batches</h2>
+          <p class="text-xs text-slate-dark/70 leading-relaxed">Tumbled in roasted coriander, cracked black pepper, sea salt, and vinegar. Slowly air-dried with ambient air.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- PRODUCTS COLLECTION GRID                                                  -->
+<!-- ========================================================================= -->
+<section id="products" class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+  <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+    <div>
+      <div class="text-xs font-bold uppercase tracking-widest text-olive mb-2">Our Range</div>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark">Handcrafted Pack Sizes</h2>
+      <p class="text-slate-dark/70 text-sm mt-1">Choose your pack size, freshly spiced and naturally cured.</p>
+    </div>
+
+    <!-- Search & Sort Controls -->
+    <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
+      <div class="relative flex-1 md:w-64">
+        <input id="product-search" type="search" placeholder="Search pack sizes..." class="w-full bg-brand-surface text-slate-dark border border-brand-border px-3.5 py-2 rounded-micro text-xs focus:outline-none focus:border-paprika shadow-sm" />
+      </div>
+
+      <select id="product-sort" class="bg-brand-surface border border-brand-border px-3 py-2 rounded-micro text-xs font-medium text-slate-dark focus:outline-none focus:border-paprika shadow-sm">
+        <option value="default">Sort: Default</option>
+        <option value="popularity">Popularity (Best Sellers)</option>
+        <option value="price-asc">Price: Low to High</option>
+        <option value="price-desc">Price: High to Low</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-8" id="product-grid">
+    
+      <div class="bg-brand-surface rounded-micro border border-brand-border shadow-card hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group product"
+     data-title="original biltong - 50g"
+     data-desc="a small, tasty hit of biltong—perfect for light snacking."
+     data-flavour="original"
+     data-quantity="50g"
+     data-price="5.0"
+     data-weight="50"
+     data-popularity="3">
+  <div>
+    <!-- Visual Container with Real Image -->
+    <div class="relative bg-brand-surface-raised h-64 w-full overflow-hidden flex items-center justify-center p-3 border-b border-brand-border">
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        
+          <span class="bg-olive text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-micro shadow-sm">100% NZ Beef</span>
+        
+        <span class="bg-slate-dark/90 text-parchment text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-micro border border-white/10">High Protein</span>
+      </div>
+
+      <a href="/products/product-50og/" class="w-full h-full flex items-center justify-center overflow-hidden rounded-micro">
+        
+          <img loading="lazy" src="/assets/images/50og.jpeg" alt="Original Biltong - 50g" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" />
+        
+      </a>
+    </div>
+
+    <!-- Details -->
+    <div class="p-5">
+      <div class="flex justify-between items-baseline mb-2">
+        <h3 class="font-serif text-lg font-bold text-slate-dark group-hover:text-paprika transition">
+          <a href="/products/product-50og/">Original Biltong - 50g</a>
+        </h3>
+        <span class="text-base font-bold text-slate-dark">$5.0</span>
+      </div>
+      <p class="text-xs text-slate-dark/70 mb-4 leading-relaxed line-clamp-2">
+        A small, tasty hit of biltong—perfect for light snacking.
+      </p>
+
+      <div class="bg-brand-surface-raised rounded-micro p-2.5 border border-brand-border mb-4 flex items-center justify-between text-xs">
+        <span class="font-bold text-slate-dark">Pack Size:</span>
+        <span class="px-2 py-0.5 rounded-micro bg-brand-surface border border-brand-border text-slate-dark font-semibold">
+          50g
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-5 pt-0 flex gap-2">
+    <a href="/products/product-50og/" class="w-1/3 py-2.5 px-2 bg-transparent hover:bg-brand-surface-raised text-slate-dark border border-brand-border rounded-micro text-xs font-semibold text-center transition-colors">
+      Details
+    </a>
+    <button type="button" onclick="quickAddToCart('Original Biltong - 50g', 5.0)" class="w-2/3 py-2.5 px-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white rounded-micro text-xs font-semibold tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Quick Add ($5.0)
+    </button>
+  </div>
+</div>
+    
+      <div class="bg-brand-surface rounded-micro border border-brand-border shadow-card hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group product"
+     data-title="original biltong - 100g"
+     data-desc="a satisfying snack-sized serve—flavourful, protein-rich, and ready anytime."
+     data-flavour="original"
+     data-quantity="100g"
+     data-price="8.0"
+     data-weight="100"
+     data-popularity="5">
+  <div>
+    <!-- Visual Container with Real Image -->
+    <div class="relative bg-brand-surface-raised h-64 w-full overflow-hidden flex items-center justify-center p-3 border-b border-brand-border">
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        
+          <span class="bg-paprika text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-micro shadow-sm">★ Best Seller</span>
+        
+        <span class="bg-slate-dark/90 text-parchment text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-micro border border-white/10">High Protein</span>
+      </div>
+
+      <a href="/products/product-100og/" class="w-full h-full flex items-center justify-center overflow-hidden rounded-micro">
+        
+          <img loading="lazy" src="/assets/images/100og.jpeg" alt="Original Biltong - 100g" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" />
+        
+      </a>
+    </div>
+
+    <!-- Details -->
+    <div class="p-5">
+      <div class="flex justify-between items-baseline mb-2">
+        <h3 class="font-serif text-lg font-bold text-slate-dark group-hover:text-paprika transition">
+          <a href="/products/product-100og/">Original Biltong - 100g</a>
+        </h3>
+        <span class="text-base font-bold text-slate-dark">$8.0</span>
+      </div>
+      <p class="text-xs text-slate-dark/70 mb-4 leading-relaxed line-clamp-2">
+        A satisfying snack-sized serve—flavourful, protein-rich, and ready anytime.
+      </p>
+
+      <div class="bg-brand-surface-raised rounded-micro p-2.5 border border-brand-border mb-4 flex items-center justify-between text-xs">
+        <span class="font-bold text-slate-dark">Pack Size:</span>
+        <span class="px-2 py-0.5 rounded-micro bg-brand-surface border border-brand-border text-slate-dark font-semibold">
+          100g
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-5 pt-0 flex gap-2">
+    <a href="/products/product-100og/" class="w-1/3 py-2.5 px-2 bg-transparent hover:bg-brand-surface-raised text-slate-dark border border-brand-border rounded-micro text-xs font-semibold text-center transition-colors">
+      Details
+    </a>
+    <button type="button" onclick="quickAddToCart('Original Biltong - 100g', 8.0)" class="w-2/3 py-2.5 px-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white rounded-micro text-xs font-semibold tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Quick Add ($8.0)
+    </button>
+  </div>
+</div>
+    
+      <div class="bg-brand-surface rounded-micro border border-brand-border shadow-card hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group product"
+     data-title="original biltong - 250g"
+     data-desc="just the right size for a quick, delicious treat on the go."
+     data-flavour="original"
+     data-quantity="250g"
+     data-price="15.0"
+     data-weight="250"
+     data-popularity="4">
+  <div>
+    <!-- Visual Container with Real Image -->
+    <div class="relative bg-brand-surface-raised h-64 w-full overflow-hidden flex items-center justify-center p-3 border-b border-brand-border">
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        
+          <span class="bg-paprika text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-micro shadow-sm">★ Best Seller</span>
+        
+        <span class="bg-slate-dark/90 text-parchment text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-micro border border-white/10">High Protein</span>
+      </div>
+
+      <a href="/products/product-250og/" class="w-full h-full flex items-center justify-center overflow-hidden rounded-micro">
+        
+          <img loading="lazy" src="/assets/images/250og.jpeg" alt="Original Biltong - 250g" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" />
+        
+      </a>
+    </div>
+
+    <!-- Details -->
+    <div class="p-5">
+      <div class="flex justify-between items-baseline mb-2">
+        <h3 class="font-serif text-lg font-bold text-slate-dark group-hover:text-paprika transition">
+          <a href="/products/product-250og/">Original Biltong - 250g</a>
+        </h3>
+        <span class="text-base font-bold text-slate-dark">$15.0</span>
+      </div>
+      <p class="text-xs text-slate-dark/70 mb-4 leading-relaxed line-clamp-2">
+        Just the right size for a quick, delicious treat on the go.
+      </p>
+
+      <div class="bg-brand-surface-raised rounded-micro p-2.5 border border-brand-border mb-4 flex items-center justify-between text-xs">
+        <span class="font-bold text-slate-dark">Pack Size:</span>
+        <span class="px-2 py-0.5 rounded-micro bg-brand-surface border border-brand-border text-slate-dark font-semibold">
+          250g
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-5 pt-0 flex gap-2">
+    <a href="/products/product-250og/" class="w-1/3 py-2.5 px-2 bg-transparent hover:bg-brand-surface-raised text-slate-dark border border-brand-border rounded-micro text-xs font-semibold text-center transition-colors">
+      Details
+    </a>
+    <button type="button" onclick="quickAddToCart('Original Biltong - 250g', 15.0)" class="w-2/3 py-2.5 px-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white rounded-micro text-xs font-semibold tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Quick Add ($15.0)
+    </button>
+  </div>
+</div>
+    
+      <div class="bg-brand-surface rounded-micro border border-brand-border shadow-card hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group product"
+     data-title="original biltong - 500g"
+     data-desc="a hearty portion for the avid snacker, with authentic savanna taste."
+     data-flavour="original"
+     data-quantity="500g"
+     data-price="25.0"
+     data-weight="500"
+     data-popularity="2">
+  <div>
+    <!-- Visual Container with Real Image -->
+    <div class="relative bg-brand-surface-raised h-64 w-full overflow-hidden flex items-center justify-center p-3 border-b border-brand-border">
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        
+          <span class="bg-olive text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-micro shadow-sm">100% NZ Beef</span>
+        
+        <span class="bg-slate-dark/90 text-parchment text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-micro border border-white/10">High Protein</span>
+      </div>
+
+      <a href="/products/product-500og/" class="w-full h-full flex items-center justify-center overflow-hidden rounded-micro">
+        
+          <img loading="lazy" src="/assets/images/500og.jpeg" alt="Original Biltong - 500g" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" />
+        
+      </a>
+    </div>
+
+    <!-- Details -->
+    <div class="p-5">
+      <div class="flex justify-between items-baseline mb-2">
+        <h3 class="font-serif text-lg font-bold text-slate-dark group-hover:text-paprika transition">
+          <a href="/products/product-500og/">Original Biltong - 500g</a>
+        </h3>
+        <span class="text-base font-bold text-slate-dark">$25.0</span>
+      </div>
+      <p class="text-xs text-slate-dark/70 mb-4 leading-relaxed line-clamp-2">
+        A hearty portion for the avid snacker, with authentic savanna taste.
+      </p>
+
+      <div class="bg-brand-surface-raised rounded-micro p-2.5 border border-brand-border mb-4 flex items-center justify-between text-xs">
+        <span class="font-bold text-slate-dark">Pack Size:</span>
+        <span class="px-2 py-0.5 rounded-micro bg-brand-surface border border-brand-border text-slate-dark font-semibold">
+          500g
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-5 pt-0 flex gap-2">
+    <a href="/products/product-500og/" class="w-1/3 py-2.5 px-2 bg-transparent hover:bg-brand-surface-raised text-slate-dark border border-brand-border rounded-micro text-xs font-semibold text-center transition-colors">
+      Details
+    </a>
+    <button type="button" onclick="quickAddToCart('Original Biltong - 500g', 25.0)" class="w-2/3 py-2.5 px-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white rounded-micro text-xs font-semibold tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Quick Add ($25.0)
+    </button>
+  </div>
+</div>
+    
+      <div class="bg-brand-surface rounded-micro border border-brand-border shadow-card hover:shadow-lg transition-all duration-200 flex flex-col justify-between overflow-hidden group product"
+     data-title="original biltong - 1kg"
+     data-desc="perfect for sharing or savoring over time—rich, bold, and packed with flavor."
+     data-flavour="original"
+     data-quantity="1kg"
+     data-price="50.0"
+     data-weight="1000"
+     data-popularity="1">
+  <div>
+    <!-- Visual Container with Real Image -->
+    <div class="relative bg-brand-surface-raised h-64 w-full overflow-hidden flex items-center justify-center p-3 border-b border-brand-border">
+      <div class="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        
+          <span class="bg-olive text-white text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-micro shadow-sm">100% NZ Beef</span>
+        
+        <span class="bg-slate-dark/90 text-parchment text-[10px] font-semibold tracking-wider px-2 py-0.5 rounded-micro border border-white/10">High Protein</span>
+      </div>
+
+      <a href="/products/product-1000og/" class="w-full h-full flex items-center justify-center overflow-hidden rounded-micro">
+        
+          <img loading="lazy" src="/assets/images/1000og.jpeg" alt="Original Biltong - 1kg" class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300" />
+        
+      </a>
+    </div>
+
+    <!-- Details -->
+    <div class="p-5">
+      <div class="flex justify-between items-baseline mb-2">
+        <h3 class="font-serif text-lg font-bold text-slate-dark group-hover:text-paprika transition">
+          <a href="/products/product-1000og/">Original Biltong - 1kg</a>
+        </h3>
+        <span class="text-base font-bold text-slate-dark">$50.0</span>
+      </div>
+      <p class="text-xs text-slate-dark/70 mb-4 leading-relaxed line-clamp-2">
+        Perfect for sharing or savoring over time—rich, bold, and packed with flavor.
+      </p>
+
+      <div class="bg-brand-surface-raised rounded-micro p-2.5 border border-brand-border mb-4 flex items-center justify-between text-xs">
+        <span class="font-bold text-slate-dark">Pack Size:</span>
+        <span class="px-2 py-0.5 rounded-micro bg-brand-surface border border-brand-border text-slate-dark font-semibold">
+          1kg
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-5 pt-0 flex gap-2">
+    <a href="/products/product-1000og/" class="w-1/3 py-2.5 px-2 bg-transparent hover:bg-brand-surface-raised text-slate-dark border border-brand-border rounded-micro text-xs font-semibold text-center transition-colors">
+      Details
+    </a>
+    <button type="button" onclick="quickAddToCart('Original Biltong - 1kg', 50.0)" class="w-2/3 py-2.5 px-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white rounded-micro text-xs font-semibold tracking-wider uppercase transition-colors flex items-center justify-center gap-1.5">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      Quick Add ($50.0)
+    </button>
+  </div>
+</div>
+    
+  </div>
+
+  <div id="no-products-message" class="hidden text-center py-12 bg-brand-surface rounded-micro border border-brand-border mt-8">
+    <p class="font-serif text-lg text-slate-dark mb-2">No matching products found</p>
+    <button type="button" id="clear-filters-btn" class="text-xs font-bold text-paprika underline">Clear search filter</button>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- EDUCATIONAL COMPARISON TABLE                                              -->
+<!-- ========================================================================= -->
+<section id="comparison-table" class="py-16 md:py-20 bg-brand-surface border-y border-brand-border">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <span class="text-xs font-bold uppercase tracking-widest text-paprika mb-2 block">Uncompromising Nutrition</span>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark mb-4">Biltong vs. Commercial Beef Jerky</h2>
+      <p class="text-slate-dark/70 text-sm sm:text-base">Why ambient air-curing creates a completely different biological and culinary product compared to industrial heat-treated beef snacks.</p>
+    </div>
+
+    <div class="overflow-x-auto rounded-micro border border-brand-border shadow-card bg-brand-surface-raised">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-brand-border bg-slate-dark text-parchment text-xs uppercase tracking-wider">
+            <th scope="col" class="py-4 px-6 font-semibold w-1/4">Comparison</th>
+            <th scope="col" class="py-4 px-6 font-bold text-white bg-paprika/90 w-3/8 text-sm">
+              Biltong Bites (Authentic Air-Cure)
+            </th>
+            <th scope="col" class="py-4 px-6 font-semibold text-gray-400 bg-slate-dark w-3/8">Commercial Jerky</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-brand-border text-sm">
+          
+          <tr class="hover:bg-brand-surface/60 transition-colors">
+            <td class="py-4 px-6 font-bold text-slate-dark">Meat Source</td>
+            <td class="py-4 px-6 font-medium text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border-x border-brand-border">
+              <strong>100% NZ Low-Stress Beef</strong> (Higher tenderness &amp; low acidity)
+            </td>
+            <td class="py-4 px-6 text-slate-dark/70">
+              Bulk commodity beef from industrial lots
+            </td>
+          </tr>
+
+          <tr class="hover:bg-brand-surface/60 transition-colors">
+            <td class="py-4 px-6 font-bold text-slate-dark">Heat Exposure</td>
+            <td class="py-4 px-6 font-medium text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border-x border-brand-border">
+              <strong>Zero Heat</strong> (Air-dried with natural ambient airflow)
+            </td>
+            <td class="py-4 px-6 text-slate-dark/70">
+              Cooked in commercial dehydration ovens (&gt;70°C)
+            </td>
+          </tr>
+
+          <tr class="hover:bg-brand-surface/60 transition-colors">
+            <td class="py-4 px-6 font-bold text-slate-dark">Texture &amp; Chew</td>
+            <td class="py-4 px-6 font-medium text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border-x border-brand-border">
+              <strong>Tender, rich steak slices</strong> that melt naturally
+            </td>
+            <td class="py-4 px-6 text-slate-dark/70">
+              Tough, rubbery, dehydrated sheets
+            </td>
+          </tr>
+
+          <tr class="hover:bg-brand-surface/60 transition-colors">
+            <td class="py-4 px-6 font-bold text-slate-dark">Ingredients</td>
+            <td class="py-4 px-6 font-medium text-emerald-800 dark:text-emerald-400 bg-emerald-500/10 border-x border-brand-border">
+              <strong>Clean pantry ingredients</strong> (Coriander, pepper, sea salt, vinegar)
+            </td>
+            <td class="py-4 px-6 text-slate-dark/70">
+              Corn syrups, artificial smoke flavorings, nitrates &amp; MSG
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- ABOUT SECTION (OUR STORY)                                                 -->
+<!-- ========================================================================= -->
+<section id="about" class="py-16 md:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-brand-surface rounded-micro border border-brand-border p-8 sm:p-12 shadow-card">
+    <div class="max-w-3xl">
+      <div class="text-xs font-bold uppercase tracking-widest text-olive mb-2">Young Enterprise Scheme</div>
+      <h2 class="font-serif text-3xl sm:text-4xl font-bold text-slate-dark mb-6">Our Story</h2>
+      
+      <div class="space-y-4 text-sm sm:text-base text-slate-dark/80 leading-relaxed">
+        <p>
+          We’re a team of four passionate 15 and 16-year-old student founders from <strong>Long Bay College in Auckland</strong> running <strong>Biltong Bites</strong> as part of the Young Enterprise Scheme (YES).
+        </p>
+        <p>
+          Unlike mass-produced jerky, we handcraft our biltong using carefully selected, low-stress meat. This thoughtful curing method yields pieces that are naturally more tender, less acidic, and richer in wholesome flavor.
+        </p>
+        <p>
+          Driven by teamwork, passion, and high standards, we take pride in delivering a clean, high-protein snack made right here by the next generation of Kiwi entrepreneurs.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-brand-border text-center">
+        <div class="p-3 bg-brand-surface-raised rounded-micro">
+          <span class="block text-2xl font-extrabold text-slate-dark">4</span>
+          <span class="text-xs font-semibold text-slate-dark/60">Student Founders</span>
+        </div>
+        <div class="p-3 bg-brand-surface-raised rounded-micro">
+          <span class="block text-2xl font-extrabold text-slate-dark">100%</span>
+          <span class="text-xs font-semibold text-slate-dark/60">NZ Handcrafted</span>
+        </div>
+        <div class="p-3 bg-brand-surface-raised rounded-micro">
+          <span class="block text-2xl font-extrabold text-slate-dark">High</span>
+          <span class="text-xs font-semibold text-slate-dark/60">Natural Protein</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================================= -->
+<!-- CONTACT & PICKUP INFO                                                     -->
+<!-- ========================================================================= -->
+<section id="contact" class="py-16 bg-brand-surface border-t border-brand-border">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+      
+      <div class="md:col-span-5 space-y-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-widest text-olive mb-1 block">Auckland Pickup &amp; Orders</span>
+          <h2 class="font-serif text-3xl font-bold text-slate-dark">Get in Touch</h2>
+        </div>
+        <p class="text-xs sm:text-sm text-slate-dark/70 leading-relaxed">
+          Have questions about bulk orders, school pickups, or our curing process? We'd love to hear from you!
+        </p>
+        <div class="p-4 bg-brand-surface-raised rounded-micro border border-brand-border space-y-2 text-xs">
+          <div>
+            <strong>Direct Email:</strong><br>
+            <a href="mailto:biltongbites25@gmail.com" class="text-paprika hover:underline">biltongbites25@gmail.com</a>
+          </div>
+          <div>
+            <strong>Pickup Location:</strong><br>
+            <span>Long Bay College, Auckland 0630</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="md:col-span-7 bg-brand-surface-raised p-6 sm:p-8 rounded-micro border border-brand-border">
+        <form id="contact-form" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Your Name</label>
+              <input required name="name" type="text" placeholder="e.g. John Doe" class="w-full bg-brand-surface text-slate-dark border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Your Email</label>
+              <input required type="email" name="email" placeholder="e.g. john@example.com" class="w-full bg-brand-surface text-slate-dark border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-dark mb-1">Message</label>
+            <textarea required name="message" rows="4" placeholder="How can we help you?" class="w-full bg-brand-surface text-slate-dark border border-brand-border px-3.5 py-2.5 text-xs rounded-micro focus:outline-none focus:border-paprika"></textarea>
+          </div>
+          <button type="submit" class="w-full sm:w-auto px-8 py-3 bg-slate-dark hover:bg-paprika text-parchment hover:text-white text-xs font-bold uppercase tracking-wider rounded-micro transition">
+            Send Message
+          </button>
+          <div id="contact-result" class="text-xs font-semibold mt-2"></div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</section>
+    </main>
+
+    <!-- Slide-Out Interactive Ajax Cart Drawer -->
+<div id="cart-drawer-container" class="relative z-50 pointer-events-none" aria-labelledby="cart-title" role="dialog" aria-modal="true">
+  <div id="cart-backdrop" class="cart-drawer-backdrop fixed inset-0 bg-slate-dark/60 opacity-0 pointer-events-none"></div>
+
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+        
+        <div id="cart-panel" class="cart-drawer-panel pointer-events-auto w-screen max-w-md bg-brand-surface border-l border-brand-border shadow-2xl flex flex-col translate-x-full">
+          
+          <div class="p-5 border-b border-brand-border flex items-center justify-between bg-brand-surface-raised">
+            <div class="flex items-center gap-2">
+              <h3 id="cart-title" class="font-serif text-lg font-bold text-slate-dark">Your Shopping Bag</h3>
+              <span id="drawer-item-count-badge" class="bg-slate-dark text-parchment text-[11px] font-bold px-2 py-0.5 rounded-full">0 Items</span>
+            </div>
+            <button id="cart-close-btn" type="button" aria-label="Close cart drawer" class="p-2 text-slate-dark/60 hover:text-slate-dark rounded-micro transition">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Cart Items Container -->
+          <div id="cart-items-list" class="flex-1 overflow-y-auto p-5 space-y-4 divide-y divide-brand-border/60">
+            <!-- Dynamically populated by main.js -->
+          </div>
+
+          <!-- Drawer Footer / Checkout Actions -->
+          <div class="p-5 bg-brand-surface-raised border-t border-brand-border space-y-4">
+            <div class="space-y-1.5 text-xs text-slate-dark">
+              <div class="flex justify-between">
+                <span class="text-slate-dark/70">Subtotal:</span>
+                <span id="cart-subtotal-text" class="font-bold text-slate-dark text-sm">$0.00</span>
+              </div>
+              <div class="flex justify-between text-emerald-700 dark:text-emerald-400">
+                <span>School Pickup (Long Bay College):</span>
+                <span class="font-bold">Free</span>
+              </div>
+            </div>
+
+            <a href="/checkout/" class="w-full py-4 bg-paprika hover:bg-paprika-hover text-white font-bold text-sm tracking-wide uppercase rounded-micro shadow-card transition flex items-center justify-center gap-2">
+              <span>Proceed to Checkout</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <footer class="bg-brand-midnight text-white border-t border-brand-border/20 pt-16 pb-12 mt-auto">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10">
+      
+      <!-- Col 1: Brand Info -->
+      <div class="lg:col-span-5 space-y-4">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-micro bg-paprika text-white flex items-center justify-center font-serif font-bold text-base">
+            BB
+          </div>
+          <div>
+            <span class="block font-serif text-xl font-bold tracking-tight text-white">Biltong Bites</span>
+            <span class="block text-[9px] tracking-widest uppercase font-semibold text-amber-300">Young Enterprise Scheme</span>
+          </div>
+        </div>
+
+        <p class="text-xs text-gray-300 leading-relaxed max-w-sm">
+          Crafted with pride by student entrepreneurs from Long Bay College in Auckland. 100% NZ low-stress beef naturally air-cured for peak tenderness.
+        </p>
+
+        <div class="text-xs space-y-2 text-gray-300 pt-2">
+          <div class="flex items-center gap-2">
+            <svg class="w-4 h-4 text-paprika flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <a href="mailto:biltongbites25@gmail.com" class="hover:text-white transition">biltongbites25@gmail.com</a>
+          </div>
+          <div class="flex items-start gap-2">
+            <svg class="w-4 h-4 text-paprika flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span>Pickup: Long Bay College, Auckland 0630</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Col 2: Navigation -->
+      <div class="lg:col-span-3 space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-amber-300">Explore</h4>
+        <ul class="space-y-2 text-xs text-gray-300">
+          <li><a href="/#products" class="hover:text-white transition">Pack Sizes &amp; Prices</a></li>
+          <li><a href="/#craft" class="hover:text-white transition">The Curing Process</a></li>
+          <li><a href="/#about" class="hover:text-white transition">Our Story (YES)</a></li>
+          <li><a href="/#contact" class="hover:text-white transition">Contact &amp; Pickups</a></li>
+          <li><a href="/account/" class="hover:text-white transition">Customer Account</a></li>
+        </ul>
+      </div>
+
+      <!-- Col 3: Pack Sizes -->
+      <div class="lg:col-span-4 space-y-3">
+        <h4 class="text-xs font-bold uppercase tracking-wider text-amber-300">Original Biltong Range</h4>
+        <ul class="space-y-2 text-xs text-gray-300">
+          <li><a href="/products/product-50og/" class="hover:text-white transition">Original Biltong - 50g ($5.00)</a></li>
+          <li><a href="/products/product-100og/" class="hover:text-white transition">Original Biltong - 100g ($8.00)</a></li>
+          <li><a href="/products/product-250og/" class="hover:text-white transition">Original Biltong - 250g ($15.00)</a></li>
+          <li><a href="/products/product-500og/" class="hover:text-white transition">Original Biltong - 500g ($25.00)</a></li>
+          <li><a href="/products/product-1000og/" class="hover:text-white transition">Original Biltong - 1kg ($50.00)</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400 gap-4">
+      <p>© 2026 Biltong Bites. Handcrafted under the Young Enterprise Scheme.</p>
+      <div class="flex items-center space-x-4 text-xs">
+        <span>100% NZ Beef</span>
+        <span>•</span>
+        <span>Low-Stress Sourcing</span>
+        <span>•</span>
+        <span>High Protein</span>
+      </div>
+    </div>
+
+  </div>
+</footer>
 
     <script defer src="/assets/scripts/main.js"></script>
   </body>
