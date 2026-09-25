@@ -484,13 +484,72 @@
         if (resp.ok && resData.status !== 'error') {
           localStorage.removeItem(CART_KEY);
           renderCartUI();
-          const queryParams = new URLSearchParams({
-            order_success: 'true',
-            order_id: resData.order_id || '',
-            email_status: resData.email_status || '',
-            email_err: resData.email_error || ''
-          });
-          window.location.href = '/account/?' + queryParams.toString();
+
+          const orderId = resData.order_id || 'BB';
+          const emailStatus = resData.email_status || 'unknown';
+          const emailErr = resData.email_error || '';
+
+          // Build email notification status snippet
+          let emailStatusSnippet = '';
+          if (emailStatus === 'sent_gmail' || emailStatus === 'sent_resend') {
+            emailStatusSnippet = `<div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-micro text-xs text-emerald-800 dark:text-emerald-300">
+              <strong class="font-bold">✓ Confirmation Email Sent:</strong> Details sent to <code>${email}</code>.
+            </div>`;
+          } else if (emailStatus === 'failed_gmail' || emailStatus === 'failed_resend') {
+            emailStatusSnippet = `<div class="p-3 bg-red-500/10 border border-red-500/30 rounded-micro text-xs text-red-800 dark:text-red-300">
+              <strong class="font-bold">⚠️ Email Error:</strong> Could not deliver email (${emailErr || 'Check Cloudflare SMTP logs'}).
+            </div>`;
+          } else if (emailStatus === 'skipped') {
+            emailStatusSnippet = `<div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-micro text-xs text-amber-800 dark:text-amber-300">
+              <strong class="font-bold">ℹ️ Email Skipped:</strong> SENDER_PASSWORD environment variable was not found by Cloudflare.
+            </div>`;
+          }
+
+          // Replace form view with confirmation card
+          const statusBox = document.getElementById('checkout-status-box');
+          if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.className = 'mt-4 p-5 bg-brand-surface-raised border border-brand-border rounded-micro space-y-4';
+            statusBox.innerHTML = `
+              <div class="flex items-center gap-2 text-emerald-600 font-bold text-base">
+                <span>🎉</span>
+                <span>Order #${orderId} Placed Successfully!</span>
+              </div>
+              <p class="text-xs text-slate-dark/80">
+                Your order has been recorded into the database and linked to your account.
+              </p>
+              ${emailStatusSnippet}
+              <div class="p-4 bg-brand-surface rounded-micro border border-brand-border text-xs space-y-1.5 text-slate-dark/90">
+                <div class="font-bold text-paprika text-xs uppercase tracking-wider">Bank Transfer Instructions:</div>
+                <p><strong>Account Name:</strong> Ethan ARMSTRONG</p>
+                <p><strong>Account Number:</strong> 12345678</p>
+                <p><strong>Amount:</strong> $${total.toFixed(2)} NZD</p>
+                <p><strong>Reference:</strong> Order #${orderId}</p>
+                <p class="pt-1 text-[11px] text-slate-dark/60">Pickup: Long Bay College, Auckland</p>
+              </div>
+              <div class="flex flex-wrap gap-2 pt-2">
+                <a href="/account/" class="px-4 py-2 bg-paprika hover:bg-paprika-hover text-white text-xs font-bold rounded-micro transition">
+                  Go to My Account &amp; Order History →
+                </a>
+                <a href="/catalog/" class="px-4 py-2 bg-brand-surface hover:bg-brand-border text-slate-dark text-xs font-bold rounded-micro transition border border-brand-border">
+                  Back to Shop
+                </a>
+              </div>
+            `;
+            if (checkoutForm) {
+              checkoutForm.style.display = 'none';
+            }
+            statusBox.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            // Fallback redirect if status box not found
+            const queryParams = new URLSearchParams({
+              order_success: 'true',
+              order_id: String(orderId),
+              email_status: emailStatus,
+              email_err: emailErr
+            });
+            window.location.href = '/account/?' + queryParams.toString();
+          }
         } else {
           const errMsg = resData.message || resData.error || 'Server rejected the order.';
           alert('Could not submit order: ' + errMsg);
