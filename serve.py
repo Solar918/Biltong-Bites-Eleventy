@@ -854,15 +854,17 @@ class BiltongRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             try:
                 data = json.loads(post_data.decode('utf-8'))
-                email = data.get('email', '').strip()
-                name = data.get('name', 'Valued Customer').strip()
-                email_name = data.get('emailName', name).strip()
-                phone = data.get('phone', '').strip()
-                cart = data.get('cart', [])
+                customer_obj = data.get('customer') if isinstance(data.get('customer'), dict) else {}
+                email = (data.get('email') or customer_obj.get('email') or '').strip()
+                name = (data.get('name') or customer_obj.get('name') or 'Valued Customer').strip()
+                email_name = (data.get('emailName') or customer_obj.get('emailName') or name).strip()
+                phone = (data.get('phone') or customer_obj.get('phone') or '').strip()
+                raw_cart = data.get('cart') or data.get('items') or []
+                cart = raw_cart if isinstance(raw_cart, list) else []
                 total = float(data.get('total', 0.0))
 
                 if not email or not cart or total <= 0:
-                    self.send_json(400, {'status': 'error', 'message': 'Invalid order: cart is empty or total is zero.'})
+                    self.send_json(400, {'status': 'error', 'message': 'Invalid order: email is missing, cart is empty, or total is zero.'})
                     return
 
                 # Deduplicate or insert customer record

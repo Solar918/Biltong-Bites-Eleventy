@@ -426,22 +426,47 @@
 
   const checkoutForm = document.getElementById('checkout-form');
   if (checkoutForm) {
+    // Attempt to pre-fill checkout fields if user is logged into their account
+    fetch('/api/auth/me')
+      .then(res => res.json())
+      .then(data => {
+        if (data.authenticated && data.user) {
+          const nameInput = document.getElementById('name');
+          const emailInput = document.getElementById('email');
+          const phoneInput = document.getElementById('phone');
+          if (nameInput && !nameInput.value) nameInput.value = data.user.name || '';
+          if (emailInput && !emailInput.value) emailInput.value = data.user.email || '';
+          if (phoneInput && !phoneInput.value) phoneInput.value = data.user.phone || '';
+        }
+      })
+      .catch(() => {});
+
     checkoutForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const cart = getCart();
       if (cart.length === 0) {
-        alert('Your cart is empty.');
+        alert('Your cart is empty. Please add items to your cart before checking out.');
         return;
       }
 
       const formData = new FormData(checkoutForm);
+      const name = (formData.get('name') || '').trim();
+      const email = (formData.get('email') || '').trim().toLowerCase();
+      const phone = (formData.get('phone') || '').trim();
+      const total = cart.reduce((acc, i) => acc + ((i.price || 0) * (i.quantity || 1)), 0);
+
       const payload = {
-        customer: Object.fromEntries(formData),
+        name,
+        email,
+        phone,
+        cart,
         items: cart,
-        total: cart.reduce((acc, i) => acc + ((i.price || 0) * (i.quantity || 1)), 0)
+        total,
+        customer: { name, email, phone }
       };
 
       const btn = document.getElementById('place-order-btn');
+      const originalBtnText = btn ? btn.textContent : 'Place Order';
       if (btn) {
         btn.disabled = true;
         btn.textContent = 'Submitting Order...';
@@ -453,16 +478,27 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        if (resp.ok) {
+
+        const resData = await resp.json().catch(() => ({}));
+
+        if (resp.ok && resData.status !== 'error') {
           localStorage.removeItem(CART_KEY);
+          renderCartUI();
           window.location.href = '/account/?order_success=true';
         } else {
-          throw new Error('Order submission failed');
+          const errMsg = resData.message || resData.error || 'Server rejected the order.';
+          alert('Could not submit order: ' + errMsg);
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalBtnText;
+          }
         }
-      } catch (_err) {
-        localStorage.removeItem(CART_KEY);
-        alert('Thank you! Your order has been placed. You will receive an email confirmation with payment details.');
-        window.location.href = '/';
+      } catch (err) {
+        alert('Network or server error while placing order: ' + (err.message || 'Please check your connection and try again.'));
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = originalBtnText;
+        }
       }
     });
   }

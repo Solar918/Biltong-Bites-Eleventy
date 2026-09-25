@@ -9,18 +9,20 @@ export async function onRequestPost(context) {
 
   try {
     const data = await request.json();
-    const email = (data.email || '').trim().toLowerCase();
-    const name = (data.name || 'Valued Customer').trim();
-    const emailName = (data.emailName || name).trim();
-    const phone = (data.phone || '').trim();
-    const cart = Array.isArray(data.cart) ? data.cart : [];
+    const customerObj = data.customer || {};
+    const email = (data.email || customerObj.email || '').trim().toLowerCase();
+    const name = (data.name || customerObj.name || 'Valued Customer').trim();
+    const emailName = (data.emailName || customerObj.emailName || name).trim();
+    const phone = (data.phone || customerObj.phone || '').trim();
+    const rawCart = data.cart || data.items || [];
+    const cart = Array.isArray(rawCart) ? rawCart : [];
     const total = parseFloat(data.total) || 0.0;
 
     // Validation
     if (!email || cart.length === 0 || total <= 0) {
       return new Response(JSON.stringify({
         status: 'error',
-        message: 'Invalid order data: cart is empty or total is zero.'
+        message: 'Invalid order data: email is missing, cart is empty, or total is zero.'
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' }
@@ -96,6 +98,9 @@ export async function onRequestPost(context) {
 
     const textBody = `Dear ${emailName},\n\nThank you for ordering with Biltong Bites!\n\nOrder #${orderId} Summary:\n${itemsListText}\n\nTotal Due: $${total.toFixed(2)} NZD\n\nBank Transfer Details:\nAccount Name: Ethan ARMSTRONG\nAccount Number: ${accountNumber}\nReference: Order #${orderId}\n\nPickup Location: Long Bay College, Auckland 0630\nQuestions? Contact us at ${contactPhone} or reply to this email.`;
 
+    let emailStatus = 'skipped';
+    let emailError = null;
+
     // Try Gmail SMTP first if password is provided
     if (senderEmail && senderPassword) {
       try {
@@ -108,13 +113,16 @@ export async function onRequestPost(context) {
           text: textBody,
           html: htmlBody,
         });
+        emailStatus = 'sent_gmail';
       } catch (smtpErr) {
         console.error('Failed to send order email via Gmail SMTP:', smtpErr);
+        emailStatus = 'failed_gmail';
+        emailError = smtpErr.message || String(smtpErr);
       }
     } else if (env.RESEND_API_KEY) {
       // Fallback to Resend API if configured
       try {
-        await fetch('https://api.resend.com/emails', {
+        const resendRes = await fetch('https://api.resend.com/emails', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${env.RESEND_API_KEY}`,
@@ -127,14 +135,24 @@ export async function onRequestPost(context) {
             html: htmlBody
           })
         });
+        if (resendRes.ok) {
+          emailStatus = 'sent_resend';
+        } else {
+          emailStatus = 'failed_resend';
+          emailError = await resendRes.text();
+        }
       } catch (emailErr) {
         console.error('Failed to send email via Resend API:', emailErr);
+        emailStatus = 'failed_resend';
+        emailError = emailErr.message || String(emailErr);
       }
     }
 
     return new Response(JSON.stringify({
       status: 'success',
-      order_id: orderId
+      order_id: orderId,
+      email_status: emailStatus,
+      email_error: emailError
     }), {
       status: 200,
       headers: {
