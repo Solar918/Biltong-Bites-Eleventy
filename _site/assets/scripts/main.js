@@ -484,7 +484,13 @@
         if (resp.ok && resData.status !== 'error') {
           localStorage.removeItem(CART_KEY);
           renderCartUI();
-          window.location.href = '/account/?order_success=true';
+          const queryParams = new URLSearchParams({
+            order_success: 'true',
+            order_id: resData.order_id || '',
+            email_status: resData.email_status || '',
+            email_err: resData.email_error || ''
+          });
+          window.location.href = '/account/?' + queryParams.toString();
         } else {
           const errMsg = resData.message || resData.error || 'Server rejected the order.';
           alert('Could not submit order: ' + errMsg);

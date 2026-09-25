@@ -80,6 +80,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Render orders
       renderOrders(data.orders || []);
 
+      // Check for order placement query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const banner = document.getElementById('order-success-banner');
+      if (banner && urlParams.get('order_success') === 'true') {
+        const orderId = urlParams.get('order_id') || '';
+        const emailStatus = urlParams.get('email_status') || '';
+        const emailErr = urlParams.get('email_err') || '';
+
+        let bannerHtml = `<strong>🎉 Order #${orderId} Placed Successfully!</strong> Your order has been recorded in the database.`;
+        if (emailStatus === 'sent_gmail' || emailStatus === 'sent_resend') {
+          bannerHtml += `<br><span style="font-size: 0.88rem; opacity: 0.9;">✓ Confirmation email was sent to your email address with bank transfer payment details.</span>`;
+        } else if (emailStatus === 'failed_gmail' || emailStatus === 'failed_resend') {
+          bannerHtml += `<br><span style="font-size: 0.88rem; color: #b82b2d;">⚠️ Email delivery issue: ${emailErr || 'Please check Cloudflare SMTP settings'}.</span>`;
+        } else if (emailStatus === 'skipped') {
+          bannerHtml += `<br><span style="font-size: 0.88rem; opacity: 0.85;">ℹ️ Note: Email dispatch was skipped (check that SENDER_EMAIL and SENDER_PASSWORD environment variables are set in Cloudflare Pages).</span>`;
+        }
+
+        banner.className = 'alert alert-success';
+        banner.innerHTML = bannerHtml;
+        banner.style.display = 'block';
+
+        // Clean up URL without refreshing
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
       loadingDiv.style.display = 'none';
       contentDiv.style.display = 'block';
     } catch (err) {
