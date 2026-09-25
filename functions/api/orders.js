@@ -1,7 +1,9 @@
+import { sendGmailSmtp } from './_email_utils.js';
+
 /**
  * Cloudflare Pages Function: POST /api/orders
  * Receives customer checkout orders, persists customer & order into Cloudflare D1,
- * and optionally dispatches email notifications via email API (e.g., Resend, Mailchannels, SendGrid).
+ * and optionally dispatches email notifications via Gmail SMTP or Resend.
  */
 
 export async function onRequestPost(context) {
@@ -104,7 +106,6 @@ export async function onRequestPost(context) {
     // Try Gmail SMTP first if password is provided
     if (senderEmail && senderPassword) {
       try {
-        const { sendGmailSmtp } = await import('./_email_utils.js');
         await sendGmailSmtp({
           user: senderEmail,
           pass: senderPassword,
@@ -146,16 +147,14 @@ export async function onRequestPost(context) {
         emailStatus = 'failed_resend';
         emailError = emailErr.message || String(emailErr);
       }
+    } else {
+      emailStatus = 'skipped';
+      if (!senderPassword) {
+        emailError = 'SENDER_PASSWORD is empty or not configured in Cloudflare environment variables.';
+      }
     }
 
-    // Collect available environment variable names (safely, without exposing secret values)
     const availableEnvKeys = Object.keys(env || {}).filter(k => k !== 'DB');
-    const hasSenderPassword = Boolean(senderPassword);
-    const hasSenderEmail = Boolean(senderEmail);
-
-    if (!hasSenderPassword) {
-      emailError = `Available env keys seen by Pages Function: [${availableEnvKeys.join(', ')}]. SENDER_PASSWORD was ${typeof senderPassword}.`;
-    }
 
     return new Response(JSON.stringify({
       status: 'success',
