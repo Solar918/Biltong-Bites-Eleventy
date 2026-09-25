@@ -148,11 +148,21 @@ export async function onRequestPost(context) {
       }
     }
 
+    // Collect available environment variable names (safely, without exposing secret values)
+    const availableEnvKeys = Object.keys(env || {}).filter(k => k !== 'DB');
+    const hasSenderPassword = Boolean(senderPassword);
+    const hasSenderEmail = Boolean(senderEmail);
+
+    if (!hasSenderPassword) {
+      emailError = `Available env keys seen by Pages Function: [${availableEnvKeys.join(', ')}]. SENDER_PASSWORD was ${typeof senderPassword}.`;
+    }
+
     return new Response(JSON.stringify({
       status: 'success',
       order_id: orderId,
       email_status: emailStatus,
-      email_error: emailError
+      email_error: emailError,
+      debug_env_keys: availableEnvKeys
     }), {
       status: 200,
       headers: {

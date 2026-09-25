@@ -501,7 +501,7 @@
             </div>`;
           } else if (emailStatus === 'skipped') {
             emailStatusSnippet = `<div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-micro text-xs text-amber-800 dark:text-amber-300">
-              <strong class="font-bold">ℹ️ Email Skipped:</strong> SENDER_PASSWORD environment variable was not found by Cloudflare.
+              <strong class="font-bold">ℹ️ Email Skipped:</strong> ${emailErr || 'SENDER_PASSWORD was not found by Cloudflare.'}
             </div>`;
           }
 
